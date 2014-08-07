@@ -6,7 +6,7 @@ MCU = -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -march=armv7e-m -mtune=cortex-m4
 FORMAT = ihex
 
 # Target file name (without extension).
-TARGET = stm32_nucleo_f401
+TARGET = nucleo_f4x1_motion_player
 
 
 # List C source files here. (C dependencies are automatically generated.)

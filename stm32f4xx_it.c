@@ -333,11 +333,6 @@ const GPIO_TypeDef* port_maps[] =
 };
 
 uint16_t sw_pushed, sw_pressing =  0, sw_touched = 0;
-extern TIM_HandleTypeDef TimHandleDebounce;
-extern TIM_HandleTypeDef TimHandleSwHold;
-extern cursor_typedef cursor;
-extern int8_t current_mode;
-extern LCDStatusStruct_typedef LCDStatusStruct;
 
 void TIM_DEBOUNCE_IRQHandler(void)
 {

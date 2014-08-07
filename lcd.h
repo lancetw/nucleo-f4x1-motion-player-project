@@ -57,6 +57,9 @@ typedef struct
 	int16_t idEntry;
 }LCDStatusStruct_typedef;
 
+extern LCDStatusStruct_typedef LCDStatusStruct;
+
+
 typedef struct{
 	int16_t curTime, prevTime;
 	union{
@@ -135,7 +138,7 @@ static const uint16_t colorc[] = {red, green, blue, skyblue, white, gray, yellow
 
 extern uint16_t clx, cly;
 extern uint16_t frame_buffer[160 * 128];
-extern LCDStatusStruct_typedef LCDStatusStruct;
+extern cursor_typedef cursor;
 
 
 volatile struct

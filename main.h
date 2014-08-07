@@ -314,9 +314,8 @@ extern SPI_HandleTypeDef SpiLcdHandle;
 #define TXBUFFERSIZE                      (COUNTOF(aTxBuffer) - 1)
 /* Size of Reception buffer */
 #define RXBUFFERSIZE                      TXBUFFERSIZE/* Exported constants --------------------------------------------------------*/
-/* Exported macro ------------------------------------------------------------*/
-/* Exported functions ------------------------------------------------------- */
 
+/* Exported macro ------------------------------------------------------------*/
 
 /* --- TIM1 SR Register ---*/
 /* Alias word address of TIM1 SR UIF bit */
@@ -342,6 +341,7 @@ extern SPI_HandleTypeDef SpiLcdHandle;
 #define TIM3_SR_UIF_BitNumber  0x00
 #define TIM3_SR_UIF_BB	       (*(__IO uint32_t *)(PERIPH_BB_BASE + (TIM3_SR_OFFSET << 5) + (TIM3_SR_UIF_BitNumber << 2)))
 
+/* Exported functions ------------------------------------------------------- */
 
 extern void SystemClock_Config(uint32_t pll_N, uint32_t pll_M);
 extern uint8_t BSP_AUDIO_OUT_Init(uint16_t OutputDevice, uint8_t Volume, uint8_t bitPerSample, uint32_t AudioFreq);
@@ -349,6 +349,11 @@ extern void init_dac();
 extern int picojpeg(int id, int play_mode);
 extern uint8_t *pjpeg_load_from_file2(uint8_t *x, uint8_t *y, int *comps, pjpeg_scan_type_t *pScan_type, int reduce);
 extern void Delay_us(int us);
+
+extern TIM_HandleTypeDef TimHandleDebounce;
+extern TIM_HandleTypeDef TimHandleSwHold;
+extern int8_t current_mode;
+
 
 #endif /* __MAIN_H */
 

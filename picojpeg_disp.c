@@ -504,6 +504,8 @@ typedef struct image_compare_results_tag
 //------------------------------------------------------------------------------
 int picojpeg(int id, int play_mode)
 {
+   HAL_TIM_Base_MspInit(&TimHandleDebounce); // reset switch state
+
    int width, height, comps;
    pjpeg_scan_type_t scan_type;
    const char* p = "?";

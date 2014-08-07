@@ -841,9 +841,8 @@ void make_shuffle_table(unsigned int seed){
 	  }
 }
 
-int PlayMusic(int id){
-
-	extern TIM_HandleTypeDef TimHandleDebounce;
+int PlayMusic(int id)
+{
 	HAL_TIM_Base_MspInit(&TimHandleDebounce); // reset switch state
 	static uint8_t pre_navigation_loop_mode = 0;
 
