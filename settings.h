@@ -17,7 +17,7 @@
 #include "sd.h"
 
 #define VERSION_MAJOR 1
-#define VERSION_MINOR 0
+#define VERSION_MINOR 1
 
 #define SETTING_TYPE_DIR   0
 #define SETTING_TYPE_ITEM  1
