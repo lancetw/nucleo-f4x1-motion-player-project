@@ -227,7 +227,7 @@ void TIM1_UP_TIM10_IRQHandler(void)
 		++sleep_time.curTime;
 
 		if((abs(sleep_time.curTime - sleep_time.prevTime) > (settings_group.disp_conf.time2sleep / 2)) && !sleep_time.flags.dimLight){ // Dim Light
-			LCDSetPWMValue(settings_group.disp_conf.brightness / 2);
+			LCDSetPWMValue(settings_group.disp_conf.brightness * 0.3f);
 			sleep_time.flags.dimLight = 1;
 		}
 
@@ -236,8 +236,6 @@ void TIM1_UP_TIM10_IRQHandler(void)
 		}
 
 	}
-
-//	HAL_TIM_IRQHandler(&TimHandle);
 }
 
 void TIM_PROGRESS_BAR_IRQHandler(void)
@@ -257,7 +255,6 @@ void TIM_PROGRESS_BAR_IRQHandler(void)
 
 void USARTx_IRQHandler(void)
 {
-	extern UART_HandleTypeDef UartHandle;
 	HAL_UART_IRQHandler(&UartHandle);
 }
 
@@ -268,17 +265,12 @@ void USARTx_IRQHandler(void)
   */
 void SPI_LCD_DMA_TX_IRQHandler(void)
 {
-  extern SPI_HandleTypeDef SpiLcdHandle;
-
   HAL_DMA_IRQHandler(SpiLcdHandle.hdmatx);
 }
 
 void SDIO_IRQHandler(void)
 {
-	extern SD_HandleTypeDef hsd;
-
 	HAL_SD_IRQHandler(&hsd);
-//	HAL_DMA_IRQHandler(hsd.hdmarx);
 }
 
 void EXTI0_IRQHandler(void)
@@ -599,8 +591,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 void AUDIO_I2Sx_DMAx_IRQHandler(void)
 {
-	extern I2S_HandleTypeDef haudio_i2s;
-
 	HAL_DMA_IRQHandler(haudio_i2s.hdmatx);
 }
 

@@ -353,6 +353,8 @@ extern void Delay_us(int us);
 extern TIM_HandleTypeDef TimHandleDebounce;
 extern TIM_HandleTypeDef TimHandleSwHold;
 extern int8_t current_mode;
+extern I2S_HandleTypeDef haudio_i2s;
+
 
 
 #endif /* __MAIN_H */

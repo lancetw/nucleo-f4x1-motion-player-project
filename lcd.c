@@ -246,8 +246,6 @@ void LCD_Clear(uint16_t Color)
 
 void LCD_Config()
 {
-	LCD_Reset();
-
 	LCD_CMD(0x0011);//Sleep exit
 	HAL_Delay(120);
 
@@ -320,9 +318,28 @@ void LCD_Config()
 	LCD_CMD(0x0029);//Display on
 
 	LCD_SetRegion(0,0,160-1,128-1);
-
-	LCD_Clear(colorc[BLACK]);
 }
+
+void LCD_DisplayOn()
+{
+	LCD_CMD(0x0029);
+}
+
+void LCD_DisplayOff()
+{
+	LCD_CMD(0x0028);
+}
+
+void LCD_SleepIn()
+{
+	LCD_CMD(0x0010);
+}
+
+void LCD_SleepOut()
+{
+	LCD_CMD(0x0011);
+}
+
 
 void LCD_Clear_Frame_Buffer(uint16_t *p_img, colors color)
 {
@@ -361,7 +378,10 @@ void LCD_Init()
 	}
 
 
+	LCD_Reset();
 	LCD_Config();
+
+	LCD_Clear(colorc[BLACK]);
 }
 
 void LCD_GotoXY(int x, int y)
@@ -376,39 +396,12 @@ void LCDPutWideCharDefault(uint16_t code, void *cp)
 	if(pcf_font.ext_loaded){
 		LCD_FUNC.putChar(code, cp);
 	} else if(code >= 0x0020 && code <= 0x00DF){
-//		LCDPutAscii(code, color);
-//		PCFPutChar(code, cp);
 		LCD_FUNC.putChar(code, cp);
 	} else {
-//		LCDPutAscii(0x00e0, color);
-//		PCFPutChar(0x0080, cp);
 		LCD_FUNC.putChar(0x0080, cp);
 	}
 }
-/*
-void LCDPutWideChar16pxDefault(uint16_t code, void *cp)
-{
-	if(pcf_font.ext_loaded){
-		LCD_FUNC.putChar16px(code, cp);
-	} else if(code >= 0x0020 && code <= 0x00DF){
-//		LCDPutAscii(code, color);
-//		PCFPutChar16px(code, cp);
-		LCD_FUNC.putChar16px(code, cp);
-	} else {
-//		LCDPutAscii(0x00e0, color);
-//		PCFPutChar16px(0x0080, cp);
-		LCD_FUNC.putChar16px(0x0080, cp);
-	}
-}
-*/
-/*
-void LCDPutString(const uint16_t *uni_str, int n, pcf_typedef *pcf)
-{
-	while(n-- > 0){
-		LCDPutWideCharDefault(*uni_str++, pcf);
-	}
-}
-*/
+
 
 void LCDPutString(const char *str, pcf_typedef *pcf)
 {

@@ -189,6 +189,81 @@ uint8_t BSP_AUDIO_OUT_Init(uint16_t OutputDevice, uint8_t Volume, uint8_t bitPer
 	  return ret;
 }
 
+void enterStopMode()
+{
+	  uint32_t GPIOA_BKBUFF[10];
+	  uint32_t GPIOB_BKBUFF[10];
+	  uint32_t GPIOC_BKBUFF[10];
+	  uint32_t GPIOD_BKBUFF[10];
+	  uint32_t GPIOH_BKBUFF[10];
+
+	  HAL_NVIC_DisableIRQ(TIM_1SEC_IRQn);
+
+	  LCDSetPWMValue(0);
+
+	  LCD_DisplayOff();
+	  LCD_SleepIn();
+
+	  wm8731_set_power_off(1);
+
+	  memcpy((void*)GPIOA_BKBUFF, (void*)GPIOA_BASE, sizeof(GPIOA_BKBUFF));
+	  memcpy((void*)GPIOB_BKBUFF, (void*)GPIOB_BASE, sizeof(GPIOB_BKBUFF));
+	  memcpy((void*)GPIOC_BKBUFF, (void*)GPIOC_BASE, sizeof(GPIOC_BKBUFF));
+	  memcpy((void*)GPIOD_BKBUFF, (void*)GPIOD_BASE, sizeof(GPIOD_BKBUFF));
+	  memcpy((void*)GPIOH_BKBUFF, (void*)GPIOH_BASE, sizeof(GPIOH_BKBUFF));
+
+	  debug.printf("\r\nsleep in");
+
+	  GPIO_InitTypeDef GPIO_InitStruct;
+
+	  GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+	  GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
+	  GPIO_InitStruct.Pull = GPIO_NOPULL;
+	  GPIO_InitStruct.Pin = GPIO_PIN_All;
+	  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+	  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+	  HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);
+
+	  GPIO_InitStruct.Pin = ~SW_PUSH_LEFT_PIN & ~SDIO_CARD_DETECT_PIN;
+	  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+	  GPIO_InitStruct.Pin = ~WM8731_SUPPLY_PIN & ~SW_PUSH_ENTER_PIN & ~SW_PUSH_RIGHT_PIN & ~SW_PUSH_UP_PIN & ~SW_PUSH_DOWN_PIN;
+	  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+	  HAL_PWREx_EnableFlashPowerDown();
+
+	  HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI);
+
+	  /* Configure the system clock */
+	  SystemClock_Config(336, 16);
+
+	  HAL_EnableCompensationCell();
+
+	  memcpy((void*)GPIOA_BASE, (void*)GPIOA_BKBUFF, sizeof(GPIOA_BKBUFF));
+	  memcpy((void*)GPIOB_BASE, (void*)GPIOB_BKBUFF, sizeof(GPIOB_BKBUFF));
+	  memcpy((void*)GPIOC_BASE, (void*)GPIOC_BKBUFF, sizeof(GPIOC_BKBUFF));
+	  memcpy((void*)GPIOD_BASE, (void*)GPIOD_BKBUFF, sizeof(GPIOD_BKBUFF));
+	  memcpy((void*)GPIOH_BASE, (void*)GPIOH_BKBUFF, sizeof(GPIOH_BKBUFF));
+
+	  debug.printf("\r\nwake up");
+
+	  sleep_time.flags.dimLight = 0;
+	  sleep_time.flags.stop_mode = 0;
+
+	  sleep_time.curTime = 0, sleep_time.prevTime = 0;
+
+	  sleep_time.flags.wakeup = 1;
+
+	  init_dac();
+
+	  LCD_SleepOut();
+	  HAL_Delay(200);
+	  LCD_Config();
+	  LCDSetPWMValue(settings_group.disp_conf.brightness);
+
+	  HAL_TIM_Base_Start_IT(&Tim1SecHandle);
+	  HAL_NVIC_EnableIRQ(TIM_1SEC_IRQn);
+}
 
 /**
   * @brief  Main program
@@ -370,31 +445,7 @@ int main(void)
   while (1)
   {
 	  if(sleep_time.flags.stop_mode){
-		  HAL_NVIC_DisableIRQ(TIM_1SEC_IRQn);
-
-		  LCDSetPWMValue(0);
-		  debug.printf("\r\nsleep in");
-
-		  HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI);
-
-		  /* Configure the system clock */
-		  SystemClock_Config(336, 16);
-
-		  HAL_EnableCompensationCell();
-
-		  debug.printf("\r\nwake up");
-
-		  LCDSetPWMValue(settings_group.disp_conf.brightness);
-
-		  sleep_time.flags.dimLight = 0;
-		  sleep_time.flags.stop_mode = 0;
-
-		  sleep_time.curTime = 0, sleep_time.prevTime = 0;
-
-		  sleep_time.flags.wakeup = 1;
-
-		  HAL_TIM_Base_Start_IT(&Tim1SecHandle);
-		  HAL_NVIC_EnableIRQ(TIM_1SEC_IRQn);
+		  enterStopMode();
 	  }
 
   	switch (LCDStatusStruct.waitExitKey) {
@@ -499,7 +550,7 @@ int main(void)
 			break;
 		case FILE_TYPE_JPG: // JPEG
 			current_mode = SW_MODE_PLAYER;
-			ret = 0, prevRet = 0;
+			ret = 0, prevRet = 0, cnt = 0;
 
 			sleep_time.flags.enable = 0;
 

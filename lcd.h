@@ -177,15 +177,21 @@ extern void LCD_FRAME_BUFFER_Transmit(int8_t blocking);
 extern void LCD_SetGramAddr(uint16_t x_start, uint16_t y_start);
 extern void LCD_Clear(uint16_t Color);
 extern void LCD_Init();
+extern void LCD_Config();
 extern void LCD_DrawSquare(int x, int y, int width, int height, colors color);
 extern void LCD_SetRegion(uint16_t x_start,uint16_t y_start,uint16_t x_end,uint16_t y_end);
 
 extern void LCD_GotoXY(int x, int y);
 
+
+extern void LCD_DisplayOn();
+extern void LCD_DisplayOff();
+extern void LCD_SleepIn();
+extern void LCD_SleepOut();
+
 extern void LCDPutString(const char *str, pcf_typedef *pcf);
 extern void LCDRotateImage(int16_t sx, int16_t sy, uint16_t width, uint16_t height, const uint16_t *p_img, uint16_t bgColor, int16_t angle, uint8_t enableAntiAlias);
 extern void LCDPrintFileList();
-//extern void LCDPutString(const char *str, pcf_typedef *pcf);
 extern void LCDSetPWMValue(int val);
 
 

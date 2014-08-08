@@ -29,6 +29,7 @@ typedef struct {
 } debug_printf_typedef;
 
 extern volatile debug_printf_typedef debug;
+extern UART_HandleTypeDef UartHandle;
 
 extern void USART_Init();
 extern void USARTPutData(const uint8_t data);

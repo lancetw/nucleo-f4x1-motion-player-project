@@ -40,6 +40,7 @@ typedef struct{
 }card_info_typedef;
 
 extern volatile card_info_typedef cardInfo;
+extern SD_HandleTypeDef hsd;
 
 
 static const char specVer[3][9] = {"1.0-1.01", "1.10", "2.00"};

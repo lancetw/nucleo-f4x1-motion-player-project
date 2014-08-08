@@ -124,9 +124,10 @@ ALL_ASFLAGS = $(MCU) -I. -x assembler-with-cpp $(ASFLAGS)
 # Default target.
 all: build gccversion sizeafter
 
-build: cm4lib hallib dsplib libaac libmp3 elf hex lss sym 
+build: cm4lib hallib dsplib libaac libmp3 elf bin hex lss sym 
 
 elf: $(TARGET).elf
+bin: $(TARGET).bin
 hex: $(TARGET).hex
 lss: $(TARGET).lss 
 sym: $(TARGET).sym
@@ -163,6 +164,10 @@ sizeafter:
 # Display compiler version information.
 gccversion : 
 	$(CC) --version
+
+# Create binary file from ELF
+%.bin: %.elf
+	$(OBJCOPY) -O binary $< $@
 
 
 # Create final output files (.hex, .eep) from ELF output file.
@@ -209,6 +214,7 @@ distclean: clean libclean
 
 # Target: clean project.
 clean:
+	$(REMOVE) $(TARGET).bin
 	$(REMOVE) $(TARGET).hex
 	$(REMOVE) $(TARGET).elf
 	$(REMOVE) $(TARGET).map

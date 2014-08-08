@@ -732,6 +732,20 @@ void wm8731_reset(void)
 }
 
 
+void wm8731_set_power_all_off(uint32_t ul_flag)
+{
+	if (ul_flag) {
+		g_us_wm8731_reg_power_down_control_value |= 0xffff;
+	} else {
+		g_us_wm8731_reg_power_down_control_value &=
+				~WM8731_REG_POWER_DOWN_CONTROL_POWEROFF;
+	}
+
+	wm8731_write_register(WM8731_REG_POWER_DOWN_CONTROL,
+			g_us_wm8731_reg_power_down_control_value);
+}
+
+
 void init_dac()
 {
 	/* reset the WM8731 */
