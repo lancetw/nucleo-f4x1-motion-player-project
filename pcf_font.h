@@ -11,17 +11,6 @@
 #include "stm32f4xx_hal.h"
 #include "fat.h"
 
-static const char type[][21] = {
-		"PCF_PROPERTIES",
-		"PCF_ACCELERATORS",
-		"PCF_METRICS",
-		"PCF_BITMAPS",
-		"PCF_INK_METRICS",
-		"PCF_BDF_ENCODINGS",
-		"PCF_SWIDTHS",
-		"PCF_GLYPH_NAMES",
-		"PCF_BDF_ACCELERATORS",
-};
 
 #define PCF_PROPERTIES			(1<<0)
 #define PCF_ACCELERATORS		(1<<1)

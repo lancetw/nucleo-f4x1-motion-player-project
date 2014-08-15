@@ -48,8 +48,6 @@ I2S_HandleTypeDef haudio_i2s;
 int8_t current_mode; // 0:Filer 1:Music
 
 
-void SystemClock_Config(uint32_t pll_N, uint32_t pll_M);
-
 /* Private function prototypes -----------------------------------------------*/
 static void Error_Handler(void);
 
@@ -96,9 +94,9 @@ char* ftostr(char* buffer, float value, int places)
 }
 
 /* These PLL parameters are valide when the f(VCO clock) = 1Mhz */
-const uint32_t I2SFreq[9] = {8000, 11025, 16000, 22050, 32000, 44100, 48000, 96000, 192000};
-const uint32_t I2SPLLN[9] = {256, 429, 213, 429, 426, 271, 258, 344, 344};
-const uint32_t I2SPLLR[9] = {5, 4, 4, 4, 4, 6, 3, 2, 2};
+const uint32_t I2SFreq[] = {8000, 11025, 16000, 22050, 32000, 44100, 48000, 96000, 192000};
+const uint32_t I2SPLLN[] = {256, 429, 213, 429, 426, 271, 258, 344, 344};
+const uint32_t I2SPLLR[] = {5, 4, 4, 4, 4, 6, 3, 2, 2};
 
 
 static void I2Sx_Init(uint8_t bitPerSample, uint32_t AudioFreq)
@@ -113,10 +111,12 @@ static void I2Sx_Init(uint8_t bitPerSample, uint32_t AudioFreq)
 
   haudio_i2s.Init.Mode = I2S_MODE_MASTER_TX;
   haudio_i2s.Init.Standard = I2S_STANDARD_PHILLIPS;
-  haudio_i2s.Init.DataFormat = bitPerSample > 16 ? I2S_DATAFORMAT_32B : I2S_DATAFORMAT_16B;//I2S_DATAFORMAT_16B;
+  haudio_i2s.Init.DataFormat = bitPerSample > 16 ? I2S_DATAFORMAT_32B : I2S_DATAFORMAT_16B;
   haudio_i2s.Init.AudioFreq = AudioFreq;
   haudio_i2s.Init.CPOL = I2S_CPOL_LOW;
+  haudio_i2s.Init.ClockSource = I2S_CLOCK_PLL;
   haudio_i2s.Init.MCLKOutput = I2S_MCLKOUTPUT_ENABLE;
+  haudio_i2s.Init.FullDuplexMode = I2S_FULLDUPLEXMODE_DISABLE;
 
   /* Init the I2S */
   HAL_I2S_DeInit(&haudio_i2s);
@@ -136,7 +136,8 @@ uint8_t BSP_AUDIO_OUT_Init(uint16_t OutputDevice, uint8_t Volume, uint8_t bitPer
 	  memset(dummy, 0, sizeof(dummy));
 
 	  for(cnt = 0;cnt < 2;cnt++){
-		  HAL_I2S_Transmit(&haudio_i2s, dummy, 100, 100);
+		  HAL_I2S_Transmit(&haudio_i2s, dummy, sizeof(dummy) / sizeof(dummy[0]), 100);
+		  HAL_Delay(10);
 
 		  wm8731_set_active(0);
 		  if(bitPerSample <= 16){
@@ -149,7 +150,7 @@ uint8_t BSP_AUDIO_OUT_Init(uint16_t OutputDevice, uint8_t Volume, uint8_t bitPer
 
 	  HAL_StatusTypeDef errorStatus;
 
-	  for(index = 0; index < 8; index++)
+	  for(index = 0; index < sizeof(I2SFreq) / sizeof(I2SFreq[0]); index++)
 	  {
 	    if(I2SFreq[index] == AudioFreq)
 	    {
@@ -181,7 +182,6 @@ uint8_t BSP_AUDIO_OUT_Init(uint16_t OutputDevice, uint8_t Volume, uint8_t bitPer
 	    RCC_ExCLKInitStruct.PLLI2S.PLLI2SM = 16;
 	    errorStatus = HAL_RCCEx_PeriphCLKConfig(&RCC_ExCLKInitStruct);
 	  }
-	  debug.printf("\r\nPLLI2SN:%d PLLI2SR:%d errorStatus:%d", RCC_ExCLKInitStruct.PLLI2S.PLLI2SN, RCC_ExCLKInitStruct.PLLI2S.PLLI2SR, errorStatus);
 
 	  ret = AUDIO_OK;
 	  I2Sx_Init(bitPerSample, AudioFreq);
@@ -191,6 +191,10 @@ uint8_t BSP_AUDIO_OUT_Init(uint16_t OutputDevice, uint8_t Volume, uint8_t bitPer
 
 void enterStopMode()
 {
+	  card_info_typedef cardInfo_cp;
+
+	  memcpy((void*)&cardInfo_cp, (void*)&cardInfo, sizeof(cardInfo));
+
 	  uint32_t GPIOA_BKBUFF[10];
 	  uint32_t GPIOB_BKBUFF[10];
 	  uint32_t GPIOC_BKBUFF[10];
@@ -200,7 +204,6 @@ void enterStopMode()
 	  HAL_NVIC_DisableIRQ(TIM_1SEC_IRQn);
 
 	  LCDSetPWMValue(0);
-
 	  LCD_DisplayOff();
 	  LCD_SleepIn();
 
@@ -227,23 +230,43 @@ void enterStopMode()
 	  GPIO_InitStruct.Pin = ~SW_PUSH_LEFT_PIN & ~SDIO_CARD_DETECT_PIN;
 	  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-	  GPIO_InitStruct.Pin = ~WM8731_SUPPLY_PIN & ~SW_PUSH_ENTER_PIN & ~SW_PUSH_RIGHT_PIN & ~SW_PUSH_UP_PIN & ~SW_PUSH_DOWN_PIN;
+//	  GPIO_InitStruct.Pin = ~WM8731_SUPPLY_PIN & ~SW_PUSH_ENTER_PIN & ~SW_PUSH_RIGHT_PIN & ~SW_PUSH_UP_PIN & ~SW_PUSH_DOWN_PIN;
+	  GPIO_InitStruct.Pin = ~SW_PUSH_ENTER_PIN & ~SW_PUSH_RIGHT_PIN & ~SW_PUSH_UP_PIN & ~SW_PUSH_DOWN_PIN;
+
 	  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
 	  HAL_PWREx_EnableFlashPowerDown();
 
 	  HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI);
 
+	  sleep_time.flags.wakeup = 1;
+
+	  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+	  GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
+	  GPIO_InitStruct.Pull = GPIO_NOPULL;
+	  GPIO_InitStruct.Pin = GPIO_PIN_All;
+	  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+	  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+	  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+	  HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);
+
 	  /* Configure the system clock */
 	  SystemClock_Config(336, 16);
 
 	  HAL_EnableCompensationCell();
+
+	  HAL_Delay(200);
+
+	  HAL_MspInit();
 
 	  memcpy((void*)GPIOA_BASE, (void*)GPIOA_BKBUFF, sizeof(GPIOA_BKBUFF));
 	  memcpy((void*)GPIOB_BASE, (void*)GPIOB_BKBUFF, sizeof(GPIOB_BKBUFF));
 	  memcpy((void*)GPIOC_BASE, (void*)GPIOC_BKBUFF, sizeof(GPIOC_BKBUFF));
 	  memcpy((void*)GPIOD_BASE, (void*)GPIOD_BKBUFF, sizeof(GPIOD_BKBUFF));
 	  memcpy((void*)GPIOH_BASE, (void*)GPIOH_BKBUFF, sizeof(GPIOH_BKBUFF));
+
+	  HAL_Delay(10);
 
 	  debug.printf("\r\nwake up");
 
@@ -252,14 +275,28 @@ void enterStopMode()
 
 	  sleep_time.curTime = 0, sleep_time.prevTime = 0;
 
-	  sleep_time.flags.wakeup = 1;
-
 	  init_dac();
+
+	  int sdRes = SDInit();
+	  if(sdRes == 0)
+	  {
+		  memcpy((void*)&cardInfo, (void*)&cardInfo_cp, sizeof(cardInfo));
+	  } else if(sdRes == -1) {
+		  const IWDG_HandleTypeDef iwdg = { \
+		  	.Instance = IWDG
+		  };
+		  __HAL_IWDG_START(&iwdg);
+		  while(1);
+	  }
 
 	  LCD_SleepOut();
 	  HAL_Delay(200);
 	  LCD_Config();
+	  LCD_FRAME_BUFFER_Transmit(LCD_DMA_TRANSMIT_COMPBLOCKING);
+
 	  LCDSetPWMValue(settings_group.disp_conf.brightness);
+
+	  sleep_time.flags.wakeup = 0;
 
 	  HAL_TIM_Base_Start_IT(&Tim1SecHandle);
 	  HAL_NVIC_EnableIRQ(TIM_1SEC_IRQn);
@@ -291,7 +328,7 @@ int main(void)
   /* Configure the system clock */
   SystemClock_Config(336, 16);
 
-  HAL_EnableCompensationCell();
+//  HAL_EnableCompensationCell();
 
   //  /*##-1- Configure the I2C peripheral ######################################*/
   I2cHandle.Instance             = I2Cx;
@@ -660,7 +697,7 @@ void SystemClock_Config(uint32_t pll_N, uint32_t pll_M)
   /* Enable HSE Oscillator and activate PLL with HSI as source */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = 16;//16
+  RCC_OscInitStruct.HSICalibrationValue = 16;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
   RCC_OscInitStruct.PLL.PLLM = pll_M;

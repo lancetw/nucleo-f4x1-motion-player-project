@@ -137,8 +137,6 @@ int PlaySound(int id)
 
 	char timeStr[20];
 
-//	debug.printf("\r\nfcount:%s", ftostr2(timeStr, 1.23f, 2));
-
 
 	if(!(infile = my_fopen(id))){
 		ret = RET_PLAY_STOP;
@@ -152,7 +150,7 @@ int PlaySound(int id)
 	if(strncmp(wavHeader.headStrRIFF, "RIFF", 4) != 0){
 		debug.printf("\r\nNot contain RIFF chunk");
 		ret = RET_PLAY_STOP;
-		goto END_WAV;
+		goto EXIT_WAV;
 	}
 
 	debug.printf("\r\nFile Size:%d", wavHeader.fileSize);
@@ -160,7 +158,7 @@ int PlaySound(int id)
 	if(strncmp(wavHeader.headStrWAVE, "WAVE", 4) != 0){
 		debug.printf("\r\nThis is not WAVE file.");
 		ret = RET_PLAY_STOP;
-		goto END_WAV;
+		goto EXIT_WAV;
 	}
 
 	int restBytes = wavHeader.fileSize;
@@ -177,7 +175,7 @@ int PlaySound(int id)
 		if(restBytes <= 0){
 			debug.printf("\r\nNot Found Format Chunk.");
 			ret = RET_PLAY_STOP;
-			goto END_WAV;
+			goto EXIT_WAV;
 		}
 		my_fseek(infile, wavChunk.chunkSize, SEEK_CUR);
 	}
@@ -199,7 +197,7 @@ int PlaySound(int id)
 		if(restBytes <= 0){
 			debug.printf("\r\nNot Found Format Chunk.");
 			ret = RET_PLAY_STOP;
-			goto END_WAV;
+			goto EXIT_WAV;
 		}
 		my_fseek(infile, wavChunk.chunkSize, SEEK_CUR);
 	}
@@ -216,16 +214,13 @@ int PlaySound(int id)
 	debug.printf("\r\nBit Per Sample:%d", wav.bitPerSample);
 	debug.printf("\r\nBytes Wave Data:%d", wavChunk.chunkSize);
 
-	int seekBytesSyncWord = infile->seekBytes;
-
-	/*
-	if(wav.bitPerSample != 16){
-		debug.printf("\r\n**Bit Per Sample must be 16bit**");
-		debug.printf("\r\ndata offset:%d", seekBytesSyncWord);
+	if(wav.formatID != 1){
+		debug.printf("\r\nthis media is not a PCM.");
 		ret = RET_PLAY_STOP;
-		goto END_WAV;
+		goto EXIT_WAV;
 	}
-	*/
+
+	int seekBytesSyncWord = infile->seekBytes;
 
 	media_data_totalBytes = wavChunk.chunkSize;
 	duration = wavChunk.chunkSize / wav.dataSpeed;
@@ -268,25 +263,22 @@ int PlaySound(int id)
 		LCDPutString(strNameSFN, &pcf);
 	}
 
-	if((wav.bitPerSample > 16) && (wav.sampleRate >= 48000)){
-		char s[10];
+
+	if(settings_group.music_conf.b.musicinfo && (wav.bitPerSample > 16) && (wav.sampleRate >= 48000)){
 		pcf.size = 12;
 		pcf.color = RED;
 		pcf.colorShadow = WHITE;
 		LCD_GotoXY(5, 19);
 		LCDPutString("Hi-Res ", &pcf);
 
-		sprintf(s, "%ubit", wav.bitPerSample);
-		LCDPutString(s, &pcf);
+		LCDPutString(wav.bitPerSample == 24 ? "24bit" : "32bit", &pcf);
 	}
-
-	extern char* ftostr(char* buffer, float value, int places);
 
 	pcf.size = 12;
 	pcf.color = WHITE;
 	pcf.colorShadow = GRAY;
 
-	char s[20], s1[10], s2[10];
+	char s[30], s1[10], s2[10];
 	SPRINTF(s, "%d/%d", id, fat.fileCnt - 1);
 	LCD_GotoXY(5, MUSIC_INFO_POS_Y + 1);
 	if(settings_group.music_conf.b.musicinfo){
@@ -298,7 +290,6 @@ int PlaySound(int id)
 	}
 	LCDPutString(s, &pcf);
 
-//	uint16_t SOUND_BUFFER[9216];
 	uint16_t SOUND_BUFFER[12288];
 	uint8_t SOUND_BUFFER_24BIT[((sizeof(SOUND_BUFFER) / 2) / sizeof(uint32_t)) * 3];
 
@@ -392,6 +383,8 @@ int PlaySound(int id)
     	} else {
     		SystemClock_Config(480, 16); //Overclock 120MHz
     	}
+    	HAL_Delay(10);
+
     	USART_Init();
 
     	debug.printf("\r\nSystemCoreClock:%d", SystemCoreClock);
@@ -449,9 +442,15 @@ int PlaySound(int id)
 	int8_t play_pause = 0;
 
 	time = 0;
+	int prevTime = 0;
 	DRAW_TIME_STR();
 	DRAW_REMAIN_TIME_STR();
 	LCD_FRAME_BUFFER_Transmit(LCD_DMA_TRANSMIT_NOBLOCKING);
+
+	HAL_Delay(30);
+
+	LCD_SetRegion(0, 90, LCD_WIDTH - 1, LCD_HEIGHT - 1);
+
 
 	__HAL_TIM_CLEAR_FLAG(&Tim1SecHandle, TIM_FLAG_UPDATE);
 	__HAL_TIM_CLEAR_IT(&Tim1SecHandle, TIM_IT_UPDATE);
@@ -537,7 +536,7 @@ int PlaySound(int id)
  	 				HAL_I2S_DMAPause(&haudio_i2s);
  	 		 		FFT_Display(&FFT, drawBuff, 1); // erase fft
  	 		 		DRAW_PAUSE_ICON();
- 	 	 	 		LCD_FRAME_BUFFER_Transmit(LCD_DMA_TRANSMIT_COMPBLOCKING);
+ 	 	 	 		LCD_FRAME_BUFFER_Transmit_Music(LCD_DMA_TRANSMIT_COMPBLOCKING);
  	 				LCDStatusStruct.waitExitKey = 1;
  				} else {
  					if(music_control.b.mute){
@@ -545,7 +544,7 @@ int PlaySound(int id)
  					} else {
  						DRAW_PLAY_ICON();
  					}
- 	 	 	 		LCD_FRAME_BUFFER_Transmit(LCD_DMA_TRANSMIT_COMPBLOCKING);
+ 	 	 	 		LCD_FRAME_BUFFER_Transmit_Music(LCD_DMA_TRANSMIT_COMPBLOCKING);
  					play_pause = 0;
  					TIM1->CR1 |= 1;
  	 				HAL_I2S_DMAResume(&haudio_i2s);
@@ -554,7 +553,7 @@ int PlaySound(int id)
  				break;
  			case PLAY_LOOP_MODE:
  				Update_Navigation_Loop_Icon(drawBuff, music_control.b.navigation_loop_mode = ++music_control.b.navigation_loop_mode % 5);
- 				LCD_FRAME_BUFFER_Transmit(LCD_DMA_TRANSMIT_NOBLOCKING);
+ 				LCD_FRAME_BUFFER_Transmit_Music(LCD_DMA_TRANSMIT_NOBLOCKING);
  				LCDStatusStruct.waitExitKey = 1;
  				break;
  			case PLAY_SW_HOLD_LEFT:
@@ -580,7 +579,7 @@ int PlaySound(int id)
  		 			DRAW_REMAIN_TIME_STR();
 
  					DRAW_SEEK_CIRCLE((float)(infile->seekBytes - seekBytesSyncWord) / (float)media_data_totalBytes, seek_active_circle_12x12);
- 		 	 		LCD_FRAME_BUFFER_Transmit(LCD_DMA_TRANSMIT_BLOCKING);
+ 		 	 		LCD_FRAME_BUFFER_Transmit_Music(LCD_DMA_TRANSMIT_BLOCKING);
 
  		 	 		HAL_Delay(100);
  		 	 		media_data_denom = 100 / (++swHoldCnt / SW_HOLD_CNT_VAL);
@@ -621,7 +620,7 @@ int PlaySound(int id)
  		 			DRAW_REMAIN_TIME_STR();
 
  					DRAW_SEEK_CIRCLE((float)(infile->seekBytes - seekBytesSyncWord) / (float)media_data_totalBytes, seek_active_circle_12x12);
- 		 	 		LCD_FRAME_BUFFER_Transmit(LCD_DMA_TRANSMIT_BLOCKING);
+ 		 	 		LCD_FRAME_BUFFER_Transmit_Music(LCD_DMA_TRANSMIT_BLOCKING);
 
  		 	 		HAL_Delay(100);
  		 	 		media_data_denom = 100 / (++swHoldCnt / SW_HOLD_CNT_VAL);
@@ -705,49 +704,48 @@ int PlaySound(int id)
 			break;
 		}
 
- 		if(wav.sampleRate == 192000){
- 			continue;
- 		}
-
-//		if(position_changed){
-//			if(++noerror_cnt >= 30){
-//				position_changed = 0;
-//				noerror_cnt = 0;
-//				HAL_I2S_DMAPause(&haudio_i2s);
-//				Delay_us(5);
-//				wm8731_left_headphone_volume_set(121 + vol);
-//				HAL_I2S_DMAResume(&haudio_i2s);
-//			}
-//		}
-
-		if(settings_group.music_conf.b.fft){
+		if(settings_group.music_conf.b.fft && (wav.sampleRate < 192000)){
 			/* sample audio data for FFT calcuration */
 			FFT_Sample(&FFT, (uint32_t*)outbuf);
 
 			/* FFT analyzer left */
 			FFT_Display(&FFT, drawBuff, 0);
-		}
 
- 		LCD_FRAME_BUFFER_Transmit(LCD_DMA_TRANSMIT_NOBLOCKING);
+			LCD_FRAME_BUFFER_Transmit_Music(LCD_DMA_TRANSMIT_COMPBLOCKING);
+		}
 
  		if(draw_part_item == 0)
  		{
+ 			if(SpiLcdHandle.State != HAL_SPI_STATE_READY){
+ 				continue;
+ 			}
  			draw_part_item = 1;
  			DRAW_SEEK_CIRCLE((float)(infile->seekBytes - seekBytesSyncWord) / (float)media_data_totalBytes, seek_circle_12x12);
+ 			LCD_FRAME_BUFFER_Transmit_Music(LCD_DMA_TRANSMIT_NOBLOCKING);
  			continue;
  		}
 
- 		if(draw_part_item == 1)
+ 		if(draw_part_item == 1 && time > prevTime)
  		{
+ 			if(SpiLcdHandle.State != HAL_SPI_STATE_READY){
+ 				continue;
+ 			}
  			draw_part_item = 2;
  			DRAW_TIME_STR();
+ 			LCD_FRAME_BUFFER_Transmit_Music(LCD_DMA_TRANSMIT_NOBLOCKING);
  			continue;
  		}
 
- 		if(draw_part_item == 2)
+ 		if(draw_part_item == 2 && time > prevTime)
  		{
+ 			if(SpiLcdHandle.State != HAL_SPI_STATE_READY){
+ 				continue;
+ 			}
  			draw_part_item = 0;
  			DRAW_REMAIN_TIME_STR();
+ 			LCD_FRAME_BUFFER_Transmit_Music(LCD_DMA_TRANSMIT_NOBLOCKING);
+
+ 			prevTime = time;
  			continue;
  		}
 	}
@@ -781,13 +779,6 @@ EXIT_PROCESS:
 
 	debug.printf("\r\nplay end");
 
-	EXIT_WAV:
-	END_WAV:
-
-	my_fclose(infile);
-
-	LCDStatusStruct.waitExitKey = 0;
-
 	if(pcf_font.ext_loaded)
 	{
 		memcpy((void*)&pcf_font, (void*)&pcf_font_bak, sizeof(pcf_font_typedef));
@@ -810,6 +801,15 @@ EXIT_PROCESS:
 		__HAL_TIM_CLEAR_IT(&Tim1SecHandle, TIM_IT_UPDATE);
 		TIM_1SEC->CNT = 0;
 	}
+
+
+	EXIT_WAV:
+
+	my_fclose(infile);
+
+	LCDStatusStruct.waitExitKey = 0;
+
+	LCD_SetRegion(0, 0, LCD_WIDTH - 1, LCD_HEIGHT - 1);
 
 	return ret;
 }

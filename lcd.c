@@ -99,6 +99,24 @@ void LCD_FRAME_BUFFER_Transmit(int8_t blocking)
 	while((blocking == LCD_DMA_TRANSMIT_COMPBLOCKING) && (SpiLcdHandle.State != HAL_SPI_STATE_READY)){};
 }
 
+void LCD_FRAME_BUFFER_Transmit_Music(int8_t blocking)
+{
+	while(blocking && (SpiLcdHandle.State != HAL_SPI_STATE_READY)){};
+
+	if(!blocking && (SpiLcdHandle.State != HAL_SPI_STATE_READY))
+	{
+		HAL_DMA_Abort(SpiLcdHandle.hdmatx);
+	}
+
+	LCD_CMD(0x002c);
+	SPI_LCD_NSS_PIN_ASSERT;
+	SPI_LCD_RS_PIN_DEASSERT;
+	HAL_SPI_Transmit_DMA(&SpiLcdHandle, (uint8_t*)&frame_buffer[90 * LCD_WIDTH], ((LCD_HEIGHT - 90) * LCD_WIDTH * sizeof(uint16_t)) / sizeof(uint16_t));
+
+	while((blocking == LCD_DMA_TRANSMIT_COMPBLOCKING) && (SpiLcdHandle.State != HAL_SPI_STATE_READY)){};
+}
+
+
 
 void LCD_DATA(uint16_t data)
 {
@@ -209,7 +227,7 @@ void LCD_Data_N(uint8_t *txData, uint16_t n)
 }
 
 
-void LCD_SetRegion(uint16_t x_start,uint16_t y_start,uint16_t x_end,uint16_t y_end)
+void LCD_SetRegion(uint16_t x_start, uint16_t y_start, uint16_t x_end, uint16_t y_end)
 {
 	LCD_CMD(0x002a);
 	LCD_DATA(x_start);

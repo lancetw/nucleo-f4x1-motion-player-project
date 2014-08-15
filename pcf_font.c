@@ -19,6 +19,23 @@ pcf_font_typedef pcf_font;
 //static const int bit_count_table[] = {0, 1, 1, 2};
 static const int bit_count_table[] = {0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4};
 
+#define DEBUG
+#undef DEBUG
+
+#ifdef DEBUG
+static const char type[][21] = {
+		"PCF_PROPERTIES",
+		"PCF_ACCELERATORS",
+		"PCF_METRICS",
+		"PCF_BITMAPS",
+		"PCF_INK_METRICS",
+		"PCF_BDF_ENCODINGS",
+		"PCF_SWIDTHS",
+		"PCF_GLYPH_NAMES",
+		"PCF_BDF_ACCELERATORS",
+};
+#endif
+
 static const float color_tone_table_4bit[] = {
 		0,
 		0.0625,
@@ -54,9 +71,6 @@ static const float color_tone_table_3bit[] = {
 
 static void PCFDrawPixel(int x, int y, int offsetY, uint8_t glyph_samples[48][16], pcf_typedef *pcf);
 
-
-#define DEBUG
-#undef DEBUG
 
 int PCFFontInit(int id)
 {
@@ -413,7 +427,7 @@ void PCFPutChar(uint16_t code, void *cp)
 		}
 	}
 
-	offsetY = pcf->size - 1 - (int)(((float)metric.character_ascent * metrics_scale) + 0.5f); // グリフの高さ揃えパラメータ
+	offsetY = pcf->size - 1 - (int)(((float)(metric.character_ascent) * metrics_scale) + 0.5f); // グリフの高さ揃えパラメータ
 
 	if(!pcf->enableShadow){
 		PCFDrawPixel(clx, cly, offsetY, glyph_samples, pcf);

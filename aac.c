@@ -402,7 +402,7 @@ int PlayAAC(int id)
 	int duration = 0, seekBytesSyncWord, media_data_totalBytes = 0;
 	int bytesLeft, nRead, err, eofReached;
 	int curX = 0, prevX = 0, ret = 0;
-	unsigned char *readPtr, readBuf[READBUF_SIZE];
+	unsigned char *readPtr, *readBuf = (unsigned char*)frame_buffer;
 	short *outbuf;
 	extern uint16_t cursorRAM[LCD_WIDTH * 13];
 
@@ -620,6 +620,10 @@ int PlayAAC(int id)
 	DRAW_REMAIN_TIME_STR();
 	LCD_FRAME_BUFFER_Transmit(LCD_DMA_TRANSMIT_NOBLOCKING);
 
+	HAL_Delay(30);
+
+	LCD_SetRegion(0, 90, LCD_WIDTH - 1, LCD_HEIGHT - 1);
+
 	bytesLeft = 0;
 	eofReached = 0;
 	readPtr = readBuf;
@@ -710,7 +714,7 @@ int PlayAAC(int id)
  	 				HAL_I2S_DMAPause(&haudio_i2s);
  	 		 		FFT_Display(&FFT, drawBuff, 1); // erase fft
  	 		 		DRAW_PAUSE_ICON();
- 	 	 	 		LCD_FRAME_BUFFER_Transmit(LCD_DMA_TRANSMIT_BLOCKING);
+ 	 	 	 		LCD_FRAME_BUFFER_Transmit_Music(LCD_DMA_TRANSMIT_BLOCKING);
  	 				LCDStatusStruct.waitExitKey = 1;
  				} else {
  					if(music_control.b.mute){
@@ -718,7 +722,7 @@ int PlayAAC(int id)
  					} else {
  						DRAW_PLAY_ICON();
  					}
- 	 	 	 		LCD_FRAME_BUFFER_Transmit(LCD_DMA_TRANSMIT_BLOCKING);
+ 	 	 	 		LCD_FRAME_BUFFER_Transmit_Music(LCD_DMA_TRANSMIT_BLOCKING);
  					play_pause = 0;
  					TIM1->CR1 |= 1;
  	 				HAL_I2S_DMAResume(&haudio_i2s);
@@ -727,7 +731,7 @@ int PlayAAC(int id)
  				break;
  			case PLAY_LOOP_MODE:
  				Update_Navigation_Loop_Icon(drawBuff, music_control.b.navigation_loop_mode = ++music_control.b.navigation_loop_mode % 5);
- 				LCD_FRAME_BUFFER_Transmit(LCD_DMA_TRANSMIT_NOBLOCKING);
+ 				LCD_FRAME_BUFFER_Transmit_Music(LCD_DMA_TRANSMIT_NOBLOCKING);
  				LCDStatusStruct.waitExitKey = 1;
  				break;
  			case PLAY_SW_HOLD_LEFT:
@@ -752,7 +756,7 @@ int PlayAAC(int id)
  		 			DRAW_REMAIN_TIME_STR();
 
  					DRAW_SEEK_CIRCLE((float)(infile->seekBytes - seekBytesSyncWord) / (float)media_data_totalBytes, seek_active_circle_12x12);
- 		 	 		LCD_FRAME_BUFFER_Transmit(LCD_DMA_TRANSMIT_BLOCKING);
+ 		 	 		LCD_FRAME_BUFFER_Transmit_Music(LCD_DMA_TRANSMIT_BLOCKING);
 
  		 	 		HAL_Delay(100);
  		 	 		media_data_denom = 100 / (++swHoldCnt / SW_HOLD_CNT_VAL);
@@ -804,7 +808,7 @@ int PlayAAC(int id)
  		 			DRAW_REMAIN_TIME_STR();
 
  					DRAW_SEEK_CIRCLE((float)(infile->seekBytes - seekBytesSyncWord) / (float)media_data_totalBytes, seek_active_circle_12x12);
- 		 	 		LCD_FRAME_BUFFER_Transmit(LCD_DMA_TRANSMIT_BLOCKING);
+ 		 	 		LCD_FRAME_BUFFER_Transmit_Music(LCD_DMA_TRANSMIT_BLOCKING);
 
  		 	 		HAL_Delay(100);
  		 	 		media_data_denom = 100 / (++swHoldCnt / SW_HOLD_CNT_VAL);
@@ -931,7 +935,7 @@ int PlayAAC(int id)
 	 		FFT_Display(&FFT, drawBuff, 0);
 		}
 
- 		LCD_FRAME_BUFFER_Transmit(LCD_DMA_TRANSMIT_NOBLOCKING);
+ 		LCD_FRAME_BUFFER_Transmit_Music(LCD_DMA_TRANSMIT_COMPBLOCKING);
  		if(draw_part_item == 0)
  		{
  			draw_part_item = 1;
@@ -999,6 +1003,8 @@ END_AAC:
 		memcpy((void*)&pcf_font, (void*)&pcf_font_bak, sizeof(pcf_font_typedef));
 		PCF_RENDER_FUNC_PCF();
 	}
+
+	LCD_SetRegion(0, 0, LCD_WIDTH - 1, LCD_HEIGHT - 1);
 
 	return ret;
 }

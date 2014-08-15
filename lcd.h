@@ -174,12 +174,13 @@ volatile struct
 extern void LCD_CMD(uint16_t index);
 extern void LCD_DATA(uint16_t data);
 extern void LCD_FRAME_BUFFER_Transmit(int8_t blocking);
+extern void LCD_FRAME_BUFFER_Transmit_Music(int8_t blocking);
 extern void LCD_SetGramAddr(uint16_t x_start, uint16_t y_start);
 extern void LCD_Clear(uint16_t Color);
 extern void LCD_Init();
 extern void LCD_Config();
 extern void LCD_DrawSquare(int x, int y, int width, int height, colors color);
-extern void LCD_SetRegion(uint16_t x_start,uint16_t y_start,uint16_t x_end,uint16_t y_end);
+extern void LCD_SetRegion(uint16_t x_start, uint16_t y_start, uint16_t x_end, uint16_t y_end);
 
 extern void LCD_GotoXY(int x, int y);
 

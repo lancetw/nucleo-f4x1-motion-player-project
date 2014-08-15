@@ -52,7 +52,7 @@
 /** 
   * @brief  HAL Status structures definition  
   */  
-typedef enum
+typedef enum 
 {
   HAL_OK       = 0x00,
   HAL_ERROR    = 0x01,
@@ -104,7 +104,7 @@ typedef enum
 
 #if (USE_RTOS == 1)
   /* Reserved for future use */
-  #error ï¿½USE_RTOS should be 0 in the current HAL releaseï¿½
+  #error “USE_RTOS should be 0 in the current HAL release”
 #else
   #define __HAL_LOCK(__HANDLE__)                                           \
                                 do{                                        \

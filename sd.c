@@ -547,7 +547,7 @@ int SDInit(void){
 	HAL_SD_MspInit(&hsd);
 
 	if(HAL_GPIO_ReadPin(SDIO_CARD_DETECT_GPIO_PORT, SDIO_CARD_DETECT_PIN) == GPIO_PIN_SET){
-		return -1;
+		return -2;
 	}
 
 	// SDIO初期設定
