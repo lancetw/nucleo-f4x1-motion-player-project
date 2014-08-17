@@ -334,7 +334,7 @@ int main(void)
   I2cHandle.Instance             = I2Cx;
   //
   I2cHandle.Init.AddressingMode  = I2C_ADDRESSINGMODE_7BIT;
-  I2cHandle.Init.ClockSpeed      = 400000;
+  I2cHandle.Init.ClockSpeed      = 100000;
   I2cHandle.Init.DualAddressMode = I2C_DUALADDRESS_DISABLED;
   I2cHandle.Init.DutyCycle       = I2C_DUTYCYCLE_2;
   I2cHandle.Init.GeneralCallMode = I2C_GENERALCALL_DISABLED;
