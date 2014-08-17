@@ -12,11 +12,11 @@
 #include "usart.h"
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 
 pcf_font_typedef pcf_font;
 
-//static const int bit_count_table[] = {0, 1, 1, 2};
 static const int bit_count_table[] = {0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4};
 
 #define DEBUG
@@ -314,7 +314,7 @@ void PCFPutChar(uint16_t code, void *cp)
 	enc1 = (code >> 8) & 0xff;
 	enc2 = code & 0xff;
 
-	float metrics_scale = 0.25f;
+	float metrics_scale;
 	uint8_t sample_mask = 0xf, sample_shift = 4, y_offset = 2;
 
 	if(enc1 > pcf_font.enc_info.max_byte1 || enc1 < pcf_font.enc_info.min_byte1){
@@ -427,7 +427,7 @@ void PCFPutChar(uint16_t code, void *cp)
 		}
 	}
 
-	offsetY = pcf->size - 1 - (int)(((float)(metric.character_ascent) * metrics_scale) + 0.5f); // グリフの高さ揃えパラメータ
+	offsetY = pcf->size - 1 - (int)roundf(metric.character_ascent * metrics_scale); // グリフの高さ揃えパラメータ
 
 	if(!pcf->enableShadow){
 		PCFDrawPixel(clx, cly, offsetY, glyph_samples, pcf);
@@ -699,7 +699,7 @@ void C_PCFPutChar(uint16_t code, void *cp)
 	enc1 = (code >> 8) & 0xff;
 	enc2 = code & 0xff;
 
-	float metrics_scale = 0.25f;
+	float metrics_scale;
 	uint8_t sample_mask = 0xf, sample_shift = 4, y_offset = 2;
 
 
@@ -813,7 +813,7 @@ void C_PCFPutChar(uint16_t code, void *cp)
 		}
 	}
 
-	offsetY = pcf->size - 1 - (int)(((float)metric.character_ascent * metrics_scale) + 0.5f); // グリフの高さ揃えパラメータ
+	offsetY = pcf->size - 1 - (int)roundf(metric.character_ascent * metrics_scale); // グリフの高さ揃えパラメータ
 
 	if(!pcf->enableShadow){
 		PCFDrawPixel(clx, cly, offsetY, glyph_samples, pcf);

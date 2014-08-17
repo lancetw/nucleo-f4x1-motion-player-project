@@ -127,8 +127,6 @@ int PlaySound(int id)
 	uint8_t *outbuf;
 	char str[10];
 
-	extern LCDStatusStruct_typedef LCDStatusStruct;
-
 	WAVEFormatStruct wav;
 	WAVEFormatHeaderStruct wavHeader;
 	WAVEFormatChunkStruct wavChunk;

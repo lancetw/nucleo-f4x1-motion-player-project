@@ -453,12 +453,6 @@ MP3DecInfo *MP3AllocateBuffers(void)
 	IMDCTInfo *mi;
 	SubbandInfo *sbi;
 
-//	extern uint16_t cursorRAM[LCD_WIDTH * 13];
-//	uint8_t *ptr = (uint8_t*)cursorRAM;
-//	mp3DecInfo = (MP3DecInfo *)ptr;
-//	memset(mp3DecInfo, 0, sizeof(MP3DecInfo));
-
-	extern uint16_t cursorRAM[LCD_WIDTH * 13];
 	uint8_t *ptr = (uint8_t*)cursorRAM;
 	mp3DecInfo = (MP3DecInfo *)ptr;
 	memset(mp3DecInfo, 0, sizeof(MP3DecInfo));
@@ -468,26 +462,9 @@ MP3DecInfo *MP3AllocateBuffers(void)
 	sfi = (ScaleFactorInfo *) &ptr[sizeof(MP3DecInfo) + sizeof(FrameHeader) + sizeof(SideInfo)];//malloc(sizeof(ScaleFactorInfo));
 	di =  (DequantInfo *)     &ptr[sizeof(MP3DecInfo) + sizeof(FrameHeader) + sizeof(SideInfo) + sizeof(ScaleFactorInfo)];//malloc(sizeof(DequantInfo));
 
-	extern uint16_t frame_buffer[160 * 128];
-	ptr = (uint8_t*)frame_buffer;
 	hi =  (HuffmanInfo *)     malloc(sizeof(HuffmanInfo));
 	sbi = (SubbandInfo *)     malloc(sizeof(SubbandInfo));
 	mi =  (IMDCTInfo *)       malloc(sizeof(IMDCTInfo));
-
-//	fh =  (FrameHeader *)     &ptr[sizeof(MP3DecInfo)];//malloc(sizeof(FrameHeader));
-//	si =  (SideInfo *)        &ptr[sizeof(MP3DecInfo) + sizeof(FrameHeader)];//malloc(sizeof(SideInfo));
-//	sfi = (ScaleFactorInfo *) &ptr[sizeof(MP3DecInfo) + sizeof(FrameHeader) + sizeof(SideInfo)];//malloc(sizeof(ScaleFactorInfo));
-//	di =  (DequantInfo *)     &ptr[sizeof(MP3DecInfo) + sizeof(FrameHeader) + sizeof(SideInfo) + sizeof(ScaleFactorInfo)];//malloc(sizeof(DequantInfo));
-//	mi =  (IMDCTInfo *)       &ptr[sizeof(MP3DecInfo) + sizeof(FrameHeader) + sizeof(SideInfo) + sizeof(ScaleFactorInfo) + sizeof(DequantInfo)];//malloc(sizeof(IMDCTInfo));
-//	hi =  (HuffmanInfo *)     malloc(sizeof(HuffmanInfo) + sizeof(SubbandInfo));
-//
-//	ptr = (uint8_t*)hi;
-//	sbi = (SubbandInfo *)     &ptr[sizeof(HuffmanInfo)];
-//
-//	if (!hi) {
-//		SAFE_FREE(hi); /* safe to call - only frees memory that was successfully allocated */
-//		return 0;
-//	}
 
 	mp3DecInfo->FrameHeaderPS =     (void *)fh;
 	mp3DecInfo->SideInfoPS =        (void *)si;
@@ -550,31 +527,19 @@ int PlayMP3(int id)
 		goto EXIT_PROCESS;
 	}
 
-
 	MP3FrameInfo mp3FrameInfo;
 	HMP3Decoder hMP3Decoder = NULL;
 
 	memset(&mp3FrameInfo, '\0', sizeof(mp3FrameInfo));
-/*
-	void *p;
-	p = malloc(23816);
-	memset(p, 0, 23816);
-	debug.printf("\r\nmalloc:%p", p);
-	free(p);
-*/
-//	if ( (hMP3Decoder = MP3InitDecoder()) == 0 ){
-//		LCDStatusStruct.waitExitKey = 0;
-//		ret = -1;
-//		goto EXIT_PROCESS;
-//	}
+
 
 	unsigned char *readPtr;
-	unsigned char readBuf[READBUF_SIZE];
 
 	char timeStr[20];
 
 	int media_data_totalBytes;
 	int bytesLeft, nRead, err, offset, eofReached;
+
 
 	id3_nameTag_struct_typedef title, album, artist;
 	_id3_title = &title, _id3_album = &album, _id3_artist = &artist;
@@ -584,20 +549,29 @@ int PlayMP3(int id)
 
 	id3tag(infile);
 
+
+	typedef union
+	{
+		struct
+		{
+			uint8_t readBuf[READBUF_SIZE];
+			uint8_t SOUND_BUFFER[9216];
+		};
+	}shared_memory_typedef;
+
+	shared_memory_typedef *sm = (shared_memory_typedef*)frame_buffer;
+
+
 	uint8_t art_work_width, art_work_height;
 	ret = LCDArtWork(_file_artwork, &art_work_width, &art_work_height);
 	LCDFadeIn(2, (void*)music_bgimg_160x128);
 	memcpy((void*)frame_buffer, (void*)music_bgimg_160x128, sizeof(frame_buffer));
 
-	extern uint16_t cursorRAM[LCD_WIDTH * 13];
 	if(ret){
 		LCDPutIcon(ART_WORK_X, ART_WORK_Y + (ART_WORK_SIZE - art_work_height) / 2, art_work_width, art_work_height, cursorRAM, 0);
 		LCDDrawReflection(ART_WORK_X, ART_WORK_Y + (ART_WORK_SIZE - art_work_height) / 2, 1, art_work_width, art_work_height, cursorRAM);
 	}
 	ret = 0;
-
-//	memcpy((void*)frame_buffer, (void*)music_art_default_160x128, sizeof(frame_buffer));
-//	LCD_FRAME_BUFFER_Transmit(LCD_DMA_TRANSMIT_BLOCKING);
 
 	if ( (hMP3Decoder = MP3AllocateBuffers()) == 0 ){
 		LCDStatusStruct.waitExitKey = 0;
@@ -693,7 +667,7 @@ int PlayMP3(int id)
 
 	bytesLeft = 0;
 	eofReached = 0;
-	readPtr = readBuf;
+	readPtr = sm->readBuf;
 	nRead = 0;
 
 	seekBytes = infile->seekBytes;
@@ -701,9 +675,9 @@ int PlayMP3(int id)
 	while(!eofReached){
 		/* somewhat arbitrary trigger to refill buffer - should always be enough for a full frame */
 		if (bytesLeft < 2*MAINBUF_SIZE && !eofReached) {
-			nRead = FillReadBuffer(readBuf, readPtr, READBUF_SIZE, bytesLeft, infile);
+			nRead = FillReadBuffer(sm->readBuf, readPtr, READBUF_SIZE, bytesLeft, infile);
 			bytesLeft += nRead;
-			readPtr = readBuf;
+			readPtr = sm->readBuf;
 			if (nRead == 0){
 				eofReached = 1;
 				break;
@@ -724,7 +698,7 @@ int PlayMP3(int id)
 		offset = MP3FindSyncWord(readPtr, bytesLeft);
 		if (offset < 0) {
 			bytesLeft = 0;
-			readPtr = readBuf;
+			readPtr = sm->readBuf;
 		    seekBytes = infile->seekBytes;
 			continue;
 		} else {
@@ -752,7 +726,7 @@ int PlayMP3(int id)
 			    }
 			}
 			bytesLeft = 0;
-			readPtr = readBuf;
+			readPtr = sm->readBuf;
 		    seekBytes = infile->seekBytes;
 			continue;
 		}
@@ -809,6 +783,7 @@ int PlayMP3(int id)
 		SPRINTF(s1, "%dkHz", (int)(mp3FrameInfo.samprate / 1000));
 		strcat(s, s1);
 	}
+	memcpy((void*)frame_buffer, (void*)music_bgimg_160x128, sizeof(sm->readBuf));
 	LCDPutString(s, &pcf);
 
 	debug.printf("\r\nsampleRate:%d", mp3FrameInfo.samprate);
@@ -816,8 +791,7 @@ int PlayMP3(int id)
 	my_fseek(infile, seekBytesSyncWord, SEEK_SET);
 
 
-	uint8_t SOUND_BUFFER[9216];
-	dac_intr.buff = SOUND_BUFFER;
+	dac_intr.buff = sm->SOUND_BUFFER;
     dac_intr.bufferSize = (MAX_NCHAN * MAX_NGRAN * MAX_NSAMP) * sizeof(int16_t) * mp3FrameInfo.nChans;
 
 	FFT_Struct_Typedef FFT;
@@ -833,7 +807,7 @@ int PlayMP3(int id)
 
 	bytesLeft = 0;
 	eofReached = 0;
-	readPtr = readBuf;
+	readPtr = sm->readBuf;
 	nRead = 0;
 
 	drawBuff_typedef *drawBuff, _drawBuff;
@@ -898,8 +872,6 @@ int PlayMP3(int id)
 	int swHoldCnt, diff, noerror_cnt = 0;
 	uint8_t draw_part_item = 0, media_data_denom, position_changed = 0;
 
-    memset((void*)SOUND_BUFFER, 0, sizeof(SOUND_BUFFER));
-
 	extern I2S_HandleTypeDef haudio_i2s;
 	extern int8_t vol;
 	int8_t play_pause = 0;
@@ -918,11 +890,12 @@ int PlayMP3(int id)
 	__HAL_TIM_CLEAR_IT(&Tim1SecHandle, TIM_IT_UPDATE);
 	TIM_1SEC->CNT = 0;
 
+    memset((void*)sm->SOUND_BUFFER, 0, sizeof(sm->SOUND_BUFFER));
     BSP_AUDIO_OUT_Init(0, 0, mp3FrameInfo.bitsPerSample, mp3FrameInfo.nChans >= 2 ? mp3FrameInfo.samprate : mp3FrameInfo.samprate / 2);
 	//wm8731_left_headphone_volume_set(121 + vol);
 	debug.printf("\r\nhaudio_i2s.State:%d", haudio_i2s.State);
 	//    HAL_StatusTypeDef errorState;
-	HAL_I2S_Transmit_DMA(&haudio_i2s, (uint16_t*)SOUND_BUFFER, DMA_MAX(dac_intr.bufferSize / ( AUDIODATA_SIZE )));
+	HAL_I2S_Transmit_DMA(&haudio_i2s, (uint16_t*)sm->SOUND_BUFFER, DMA_MAX(dac_intr.bufferSize / ( AUDIODATA_SIZE )));
 
 	HAL_TIM_Base_Start_IT(&Tim1SecHandle);
 	HAL_NVIC_EnableIRQ(TIM_1SEC_IRQn);
@@ -1126,9 +1099,9 @@ int PlayMP3(int id)
 
 		/* somewhat arbitrary trigger to refill buffer - should always be enough for a full frame */
 		if (bytesLeft < 2*MAINBUF_SIZE && !eofReached) {
-			nRead = FillReadBuffer(readBuf, readPtr, READBUF_SIZE, bytesLeft, infile);
+			nRead = FillReadBuffer(sm->readBuf, readPtr, READBUF_SIZE, bytesLeft, infile);
 			bytesLeft += nRead;
-			readPtr = readBuf;
+			readPtr = sm->readBuf;
 			if (nRead == 0){
 				eofReached = 1;
 				break;
@@ -1140,7 +1113,7 @@ int PlayMP3(int id)
 		if (offset < 0) {
 			debug.printf("\r\nno sync found");
 			bytesLeft = 0;
-			readPtr = readBuf;
+			readPtr = sm->readBuf;
 			continue;
 		}
 		readPtr += offset;
@@ -1167,7 +1140,7 @@ int PlayMP3(int id)
 			case ERR_MP3_INVALID_HUFFCODES:
 				debug.printf("\r\nERR_MP3_INVALID_(FRAMEHEADER | HUFFCODES)");
 				bytesLeft = 0;
-				readPtr = readBuf;
+				readPtr = sm->readBuf;
 				continue;
 			default:
 				debug.printf("\r\nerr:%d", err);
@@ -1225,8 +1198,8 @@ int PlayMP3(int id)
 	}
 
 EXIT_PROCESS:
-	memset((void*)SOUND_BUFFER, 0, sizeof(SOUND_BUFFER));
-	HAL_I2S_Transmit(&haudio_i2s, (uint16_t*)SOUND_BUFFER, sizeof(SOUND_BUFFER) / sizeof(uint16_t), 100);
+	memset((void*)sm->SOUND_BUFFER, 0, sizeof(sm->SOUND_BUFFER));
+	HAL_I2S_Transmit(&haudio_i2s, (uint16_t*)sm->SOUND_BUFFER, sizeof(sm->SOUND_BUFFER) / sizeof(uint16_t), 100);
 
     HAL_Delay(20);
 
@@ -1260,6 +1233,7 @@ END_MP3:
 	}
 
 	LCD_SetRegion(0, 0, LCD_WIDTH - 1, LCD_HEIGHT - 1);
+	memcpy((void*)frame_buffer, (void*)music_bgimg_160x128, sizeof(frame_buffer));
 
 	return ret;
 }

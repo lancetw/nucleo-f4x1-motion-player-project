@@ -402,9 +402,19 @@ int PlayAAC(int id)
 	int duration = 0, seekBytesSyncWord, media_data_totalBytes = 0;
 	int bytesLeft, nRead, err, eofReached;
 	int curX = 0, prevX = 0, ret = 0;
-	unsigned char *readPtr, *readBuf = (unsigned char*)frame_buffer;
+	unsigned char *readPtr;
 	short *outbuf;
-	extern uint16_t cursorRAM[LCD_WIDTH * 13];
+
+	typedef union
+	{
+		struct
+		{
+			uint8_t readBuf[READBUF_SIZE];
+			uint8_t SOUND_BUFFER[8192];
+		};
+	}shared_memory_typedef;
+
+	shared_memory_typedef *sm = (shared_memory_typedef*)frame_buffer;
 
 	HAACDecoder *hAACDecoder;
 	AACFrameInfo aacFrameInfo;
@@ -528,8 +538,7 @@ int PlayAAC(int id)
 
 	display_tag_info(id);
 
-	uint8_t SOUND_BUFFER[8192];
-	dac_intr.buff = SOUND_BUFFER;
+	dac_intr.buff = sm->SOUND_BUFFER;
     dac_intr.bufferSize = (AAC_MAX_NCHANS * AAC_MAX_NSAMPS * SBR_MUL) * sizeof(int16_t) * aacFrameInfo.nChans;
 
 	FFT_Struct_Typedef FFT;
@@ -607,8 +616,6 @@ int PlayAAC(int id)
 	int swHoldCnt, diff, noerror_cnt = 0;
 	uint8_t draw_part_item = 0, media_data_denom, position_changed = 0;
 
-
-	memset(SOUND_BUFFER, 0, sizeof(SOUND_BUFFER));
 	extern I2S_HandleTypeDef haudio_i2s;
 	extern int8_t vol;
 	int8_t play_pause = 0;
@@ -626,16 +633,18 @@ int PlayAAC(int id)
 
 	bytesLeft = 0;
 	eofReached = 0;
-	readPtr = readBuf;
+	readPtr = sm->readBuf;
 	nRead = 0;
 
 	debug.printf("\r\nnumEntry:%d", _aac_stco_struct->numEntry);
+
+	memset(sm->SOUND_BUFFER, 0, sizeof(sm->SOUND_BUFFER));
 
     BSP_AUDIO_OUT_Init(0, 0, 16, aacFrameInfo.nChans >= 2 ? aacFrameInfo.sampRateCore : aacFrameInfo.sampRateCore / 2);
 //	wm8731_left_headphone_volume_set(121 + vol);
 //	debug.printf("\r\nhaudio_i2s.State:%d", haudio_i2s.State);
 	//    HAL_StatusTypeDef errorState;
-	HAL_I2S_Transmit_DMA(&haudio_i2s, (uint16_t*)SOUND_BUFFER, DMA_MAX(dac_intr.bufferSize / ( AUDIODATA_SIZE )));
+	HAL_I2S_Transmit_DMA(&haudio_i2s, (uint16_t*)sm->SOUND_BUFFER, DMA_MAX(dac_intr.bufferSize / ( AUDIODATA_SIZE )));
 
 	__HAL_TIM_CLEAR_FLAG(&Tim1SecHandle, TIM_FLAG_UPDATE);
 	__HAL_TIM_CLEAR_IT(&Tim1SecHandle, TIM_IT_UPDATE);
@@ -767,7 +776,7 @@ int PlayAAC(int id)
 
 						bytesLeft = 0;
 	 					eofReached = 0;
-	 					readPtr = readBuf;
+	 					readPtr = sm->readBuf;
 	 					err = 0;
 	 					noerror_cnt = 0;
 
@@ -820,7 +829,7 @@ int PlayAAC(int id)
 
 						bytesLeft = 0;
 	 					eofReached = 0;
-	 					readPtr = readBuf;
+	 					readPtr = sm->readBuf;
 	 					err = 0;
 	 					noerror_cnt = 0;
 
@@ -870,9 +879,9 @@ int PlayAAC(int id)
 		do{
 			/* somewhat arbitrary trigger to refill buffer - should always be enough for a full frame */
 			if (bytesLeft < AAC_MAX_NCHANS * AAC_MAINBUF_SIZE && !eofReached) {
-				nRead = FillReadBuffer(readBuf, readPtr, READBUF_SIZE, bytesLeft, infile);
+				nRead = FillReadBuffer(sm->readBuf, readPtr, READBUF_SIZE, bytesLeft, infile);
 				bytesLeft += nRead;
-				readPtr = readBuf;
+				readPtr = sm->readBuf;
 				if (nRead == 0){
 					eofReached = 1;
 					debug.printf("\r\neofReached");
@@ -904,7 +913,7 @@ int PlayAAC(int id)
 
 							bytesLeft = 0;
 		 					eofReached = 0;
-		 					readPtr = readBuf;
+		 					readPtr = sm->readBuf;
 		 					err = 0;
 		 		 			outbuf = (short*)dac_intr.buff;
 
@@ -970,8 +979,8 @@ int PlayAAC(int id)
 	}
 
 EXIT_PROCESS:
-	memset((void*)SOUND_BUFFER, 0, sizeof(SOUND_BUFFER));
-	HAL_I2S_Transmit(&haudio_i2s, (uint16_t*)SOUND_BUFFER, sizeof(SOUND_BUFFER) / sizeof(uint16_t), 100);
+	memset((void*)sm->SOUND_BUFFER, 0, sizeof(sm->SOUND_BUFFER));
+	HAL_I2S_Transmit(&haudio_i2s, (uint16_t*)sm->SOUND_BUFFER, sizeof(sm->SOUND_BUFFER) / sizeof(uint16_t), 100);
 
     HAL_Delay(20);
 
@@ -1005,6 +1014,7 @@ END_AAC:
 	}
 
 	LCD_SetRegion(0, 0, LCD_WIDTH - 1, LCD_HEIGHT - 1);
+	memcpy((void*)frame_buffer, (void*)music_bgimg_160x128, sizeof(frame_buffer));
 
 	return ret;
 }

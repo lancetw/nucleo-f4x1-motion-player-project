@@ -51,6 +51,8 @@ typedef struct
 
 extern cursor_typedef cursor;
 
+extern uint16_t cursorRAM[LCD_WIDTH * 13];
+
 typedef struct
 {
 	int waitExitKey;
