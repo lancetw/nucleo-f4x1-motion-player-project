@@ -500,12 +500,12 @@ extern int8_t vol;
 			break;
 		case VOL_UP:
 			vol = ++vol < 6 ? vol : 6;
-			wm8731_left_headphone_volume_set(121 + vol);
+//			wm8731_left_headphone_volume_set(121 + vol);
 			LCDStatusStruct.waitExitKey = 1;
 			break;
 		case VOL_DOWN:
 			vol = --vol > -121 ? vol : -121;
-			wm8731_left_headphone_volume_set(121 + vol);
+//			wm8731_left_headphone_volume_set(121 + vol);
 			LCDStatusStruct.waitExitKey = 1;
 			break;
 		case PLAY_PAUSE:
@@ -1060,7 +1060,7 @@ int PlayMovie(int id){
 
 	LCDStatusStruct.waitExitKey = 1;
 
-	uint32_t outflag = 0, count = 0;
+	int outflag = 0, count = 0, pause = 0;
 
 	while(1){
 		CHUNK_OFFSET_HEAD:
@@ -1155,11 +1155,11 @@ int PlayMovie(int id){
 						}
 					}
 
-					if(!outflag && ++count >= 10){
+					if(!outflag && (++count >= 100000)){
 						outflag = 1;
 						if(!music_control.b.mute){
 							HAL_I2S_DMAPause(&haudio_i2s);
-							Delay_us(5);
+							Delay_us(3);
 							wm8731_left_headphone_volume_set(121 + vol);
 							HAL_I2S_DMAResume(&haudio_i2s);
 						}
@@ -1169,7 +1169,7 @@ int PlayMovie(int id){
 		 			{
 		 			case VOL_UP:
 		 				HAL_I2S_DMAPause(&haudio_i2s);
-		 				Delay_us(5);
+		 				Delay_us(3);
 		 				vol = ++vol < 6 ? vol : 6;
 		 				wm8731_left_headphone_volume_set(121 + vol);
 		 				HAL_I2S_DMAResume(&haudio_i2s);
@@ -1178,7 +1178,7 @@ int PlayMovie(int id){
 		 				break;
 		 			case VOL_DOWN:
 		 				HAL_I2S_DMAPause(&haudio_i2s);
-		 				Delay_us(5);
+		 				Delay_us(3);
 		 				vol = --vol > -121 ? vol : -121;
 		 				wm8731_left_headphone_volume_set(121 + vol);
 		 				HAL_I2S_DMAResume(&haudio_i2s);
@@ -1187,7 +1187,7 @@ int PlayMovie(int id){
 		 				break;
 		 			case VOL_MUTE:
 		 				HAL_I2S_DMAPause(&haudio_i2s);
-		 				Delay_us(5);
+		 				Delay_us(3);
 		 				if(music_control.b.mute){
 		 					music_control.b.mute = 0;
 		 	 				wm8731_left_headphone_volume_set(121 + vol);
@@ -1203,6 +1203,9 @@ int PlayMovie(int id){
 		 			case PLAY_SW_HOLD_RIGHT:
 		 			case PLAY_LOOP_MODE:
 		 				HAL_I2S_DMAPause(&haudio_i2s);
+		 				Delay_us(3);
+	 	 				wm8731_left_headphone_volume_set(0);
+		 				HAL_I2S_DMAResume(&haudio_i2s);
 		 				DMA_SOUND_IT_DISABLE;
 
 						raw.frame_size = media.video.width * media.video.height * sizeof(uint16_t);
@@ -1216,7 +1219,7 @@ int PlayMovie(int id){
 						}
 
 						ret = mjpegPause(id);
-						uint32_t outflag = 0, count = 0;
+						outflag = 0, count = 0;
 						if(ret == RET_PLAY_STOP || ret == RET_PLAY_NEXT || ret == RET_PLAY_PREV){
 							goto END_PROCESS;
 						}

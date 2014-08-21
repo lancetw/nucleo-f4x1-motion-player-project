@@ -195,7 +195,7 @@ void wm8731_right_headphone_volume_set(uint16_t us_value)
 			~WM8731_REG_RIGHT_HEADPHONE_OUT_RHPVOL_MSK;
 
 	g_us_wm8731_reg_right_headphone_out_value |=
-			WM8731_REG_RIGHT_HEADPHONE_OUT_RHPVOL(us_value) | 0b10000000;
+			WM8731_REG_RIGHT_HEADPHONE_OUT_RHPVOL(us_value) | 0b110000000;
 
 	wm8731_write_register(WM8731_REG_RIGHT_HEADPHONE_OUT,
 			g_us_wm8731_reg_right_headphone_out_value);

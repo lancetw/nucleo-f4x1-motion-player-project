@@ -669,7 +669,7 @@ int PlayAAC(int id)
  			{
  			case VOL_UP:
  				HAL_I2S_DMAPause(&haudio_i2s);
- 				Delay_us(5);
+ 				Delay_us(3);
  				vol = ++vol < 6 ? vol : 6;
  				wm8731_left_headphone_volume_set(121 + vol);
  				if(!play_pause){
@@ -683,7 +683,7 @@ int PlayAAC(int id)
  				break;
  			case VOL_DOWN:
  				HAL_I2S_DMAPause(&haudio_i2s);
- 				Delay_us(5);
+ 				Delay_us(3);
  				vol = --vol > -121 ? vol : -121;
  				wm8731_left_headphone_volume_set(121 + vol);
  				if(!play_pause){
@@ -697,7 +697,7 @@ int PlayAAC(int id)
  				break;
  			case VOL_MUTE:
  				HAL_I2S_DMAPause(&haudio_i2s);
- 				Delay_us(5);
+ 				Delay_us(3);
  				if(music_control.b.mute){
  					music_control.b.mute = 0;
  	 				wm8731_left_headphone_volume_set(121 + vol);
@@ -745,8 +745,9 @@ int PlayAAC(int id)
  				break;
  			case PLAY_SW_HOLD_LEFT:
  				HAL_I2S_DMAPause(&haudio_i2s);
- 				Delay_us(5);
+ 				Delay_us(3);
  				wm8731_left_headphone_volume_set(0);
+ 				HAL_I2S_DMAResume(&haudio_i2s);
  				FFT_Display(&FFT, drawBuff, 1); // erase fft
  				DRAW_PAUSE_ICON();
  				media_data_denom = 100;
@@ -800,8 +801,9 @@ int PlayAAC(int id)
  				break;
  			case PLAY_SW_HOLD_RIGHT:
  				HAL_I2S_DMAPause(&haudio_i2s);
-				Delay_us(5);
+				Delay_us(3);
  				wm8731_left_headphone_volume_set(0);
+ 				HAL_I2S_DMAResume(&haudio_i2s);
 	 		 	FFT_Display(&FFT, drawBuff, 1); // erase fft
 	 		 	DRAW_PAUSE_ICON();
 	 		 	media_data_denom = 100;
@@ -870,7 +872,7 @@ int PlayAAC(int id)
 			outflag = 1;
 			if(!music_control.b.mute){
 				HAL_I2S_DMAPause(&haudio_i2s);
-				Delay_us(5);
+				Delay_us(3);
 				wm8731_left_headphone_volume_set(121 + vol);
 				HAL_I2S_DMAResume(&haudio_i2s);
 			}
@@ -928,7 +930,7 @@ int PlayAAC(int id)
 					noerror_cnt = 0;
 					if(!music_control.b.mute){
 						HAL_I2S_DMAPause(&haudio_i2s);
-						Delay_us(5);
+						Delay_us(3);
 						wm8731_left_headphone_volume_set(121 + vol);
 						HAL_I2S_DMAResume(&haudio_i2s);
 					}
