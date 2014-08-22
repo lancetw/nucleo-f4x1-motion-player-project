@@ -552,10 +552,10 @@ int PlaySound(int id)
  				LCDStatusStruct.waitExitKey = 1;
  				break;
  			case PLAY_SW_HOLD_LEFT:
- 			    memset((void*)SOUND_BUFFER, 0, sizeof(SOUND_BUFFER));
-// 				HAL_I2S_DMAPause(&haudio_i2s);
-// 				Delay_us(3);
-// 				wm8731_left_headphone_volume_set(0);
+ 				HAL_I2S_DMAPause(&haudio_i2s);
+ 				Delay_us(3);
+ 				wm8731_left_headphone_volume_set(0);
+				HAL_I2S_DMAResume(&haudio_i2s);
  				FFT_Display(&FFT, drawBuff, 1); // erase fft
  				DRAW_PAUSE_ICON();
  				media_data_denom = 100;
@@ -599,10 +599,10 @@ int PlaySound(int id)
  				LCDStatusStruct.waitExitKey = 1;
  				break;
  			case PLAY_SW_HOLD_RIGHT:
- 			    memset((void*)SOUND_BUFFER, 0, sizeof(SOUND_BUFFER));
-// 				HAL_I2S_DMAPause(&haudio_i2s);
-//				Delay_us(3);
-// 				wm8731_left_headphone_volume_set(0);
+ 				HAL_I2S_DMAPause(&haudio_i2s);
+				Delay_us(3);
+ 				wm8731_left_headphone_volume_set(0);
+				HAL_I2S_DMAResume(&haudio_i2s);
 	 		 	FFT_Display(&FFT, drawBuff, 1); // erase fft
 	 		 	DRAW_PAUSE_ICON();
 	 		 	media_data_denom = 100;

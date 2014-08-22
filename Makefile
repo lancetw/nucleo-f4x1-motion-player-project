@@ -59,7 +59,6 @@ CFLAGS += $(CSTANDARD)
 
 
 STARTUP = lib/Drivers/CMSIS/Device/ST/STM32F4xx/Source/Templates/system_stm32f4xx.o
-#STARTUP = lib/Drivers/CMSIS/Device/ST/STM32F4xx/Source/Templates/gcc/startup_stm32f401xe.o
 
 
 # Assembler flags.
@@ -75,20 +74,12 @@ ASFLAGS = -I ./binaries #-Wa,-gstabs
 #    -Map:      create map file
 #    --cref:    add cross reference to  map file
 LDFLAGS = -T STM32F401CE_FLASH.ld
-#LDFLAGS = -T stm32_flash.ld 
-#LDFLAGS += -Wl,-Map=$(TARGET
 LDFLAGS += $(PRINTF_LIB) $(SCANF_LIB) $(MATH_LIB) $(GCC_LIB) $(patsubst %,-L%,$(DIRLIB)) -lcm4 -lhal -lc -lgcc -ldsp -laac -lmp3
 
 # ---------------------------------------------------------------------------
 
 # Define directories, if needed.
-DIRINC = .
-#DIRLIB = ./lib/STM32F4xx_StdPeriph_Driver ./lib/CMSIS/ST/STM32F4xx ./lib/CMSIS/DSP_Lib/Source /usr/local/arm/arm-none-eabi/lib/thumb2 /usr/local/arm/lib/gcc/arm-none-eabi/4.4.1/thumb2 ./aac ./mp3
-#DIRLIB = lib/Drivers/CMSIS/Device/ST/STM32F4xx lib/Drivers/STM32F4xx_HAL_Driver /usr/local/arm/arm-none-eabi/lib/armv7e-m/softfp  /usr/local/arm/lib/gcc/arm-none-eabi/4.8.3/armv7e-m/softfp
-#DIRLIB = lib/Drivers/CMSIS/Device/ST/STM32F4xx lib/Drivers/STM32F4xx_HAL_Driver lib/Drivers/CMSIS/DSP_Lib/Source /usr/local/arm/arm-none-eabi/lib/armv7e-m/softfp /usr/local/arm/lib/gcc/arm-none-eabi/4.8.4/armv7e-m/softfp ./aac ./mp3
-
-DIRLIB = lib/Drivers/CMSIS/Device/ST/STM32F4xx lib/Drivers/STM32F4xx_HAL_Driver lib/Drivers/CMSIS/DSP_Lib/Source /usr/local/arm/arm-none-eabi/lib/thumb/cortex-m4/ /usr/local/arm/lib/gcc/arm-none-eabi/4.6.2/thumb/cortex-m4 ./aac ./mp3
-#DIRLIB = ./lib/STM32F4xx_StdPeriph_Driver ./lib/CMSIS/ST/STM32F4xx ./lib/CMSIS/DSP_Lib/Source /usr/local/arm/arm-none-eabi/lib/thumb/cortex-m4/float-abi-hard/fpuv4-sp-d16 /usr/local/arm/lib/gcc/arm-none-eabi/4.6.2/thumb/cortex-m4/float-abi-hard/fpuv4-sp-d16 ./aac ./mp3
+DIRLIB = lib/Drivers/CMSIS/Device/ST/STM32F4xx lib/Drivers/STM32F4xx_HAL_Driver lib/Drivers/CMSIS/DSP_Lib/Source $(libc_path) $(libgcc_path) ./aac ./mp3
 
 # Define programs and commands.
 SHELL = sh
@@ -103,6 +94,16 @@ REMOVE = rm -f
 COPY = cp
 YACC = bison
 LEX = flex
+
+multilib := $(shell $(CC) -print-multi-lib)
+sources := $(wildcard *.c)
+find_cortex-m4 := $(findstring thumb/cortex-m4,$(multilib))
+find_armv7e-m := $(findstring armv7e-m/softfp,$(multilib))
+libgcc-file-name := $(shell $(CC) -print-libgcc-file-name)
+libgcc_path :=
+libc-file-name := $(shell $(CC) -print-file-name=libc.a)
+libc_path :=
+location :=
 
 # Define all object files.
 OBJ = $(SRC:.c=.o) $(ASRC:.s=.o) $(BINARY:.bin=.o)
@@ -122,7 +123,12 @@ ALL_ASFLAGS = $(MCU) -I. -x assembler-with-cpp $(ASFLAGS)
 
 
 # Default target.
-all: build gccversion sizeafter
+all: prepair build gccversion sizeafter
+
+prepair:
+	$(if $(find_cortex-m4),$(eval location = $(find_cortex-m4)),$(if $(find_armv7e-m),$(eval location = $(find_armv7e-m)),$(error "cannot detect library location. please specify libc_path & libgcc_path.")))
+	$(eval libgcc_path = $(subst libgcc.a,$(location),$(libgcc-file-name)))
+	$(eval libc_path = $(subst libc.a,$(location),$(libc-file-name)))
 
 build: cm4lib hallib dsplib libaac libmp3 elf bin hex lss sym 
 
