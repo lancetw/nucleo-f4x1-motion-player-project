@@ -1,6 +1,11 @@
 
+# mfloat abi: softfp or hard
+MFLOAT_ABI = softfp
+
 # MCU name
-MCU = -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -march=armv7e-m -mtune=cortex-m4 -mfloat-abi=softfp -mlittle-endian -mthumb-interwork 
+MCU = -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -march=armv7e-m -mtune=cortex-m4 -mfloat-abi=$(MFLOAT_ABI) -mlittle-endian -mthumb-interwork 
+
+export MCU
 
 # Output format. (can be srec, ihex, binary)
 FORMAT = ihex
@@ -35,7 +40,9 @@ EXTRAINCDIRS = ./lib/Drivers/CMSIS/Include ./lib/Drivers/STM32F4xx_HAL_Driver/In
 CSTANDARD =
 
 # Place -D or -U options here
-CDEFS = -DBUILD=0x`date '+%Y%m%d'` -DARM -DARM_MATH_CM4 -DSTM32F411xE -DUSE_STM32F4XX_NUCLEO #-DUSE_FULL_ASSERT
+CDEFS = -DARM -DARM_MATH_CM4 -DSTM32F411xE -DUSE_STM32F4XX_NUCLEO -DUSE_DEFAULT_STDLIB -D__FPU_PRESENT #-DUSE_FULL_ASSERT
+
+export CDEFS
 
 # Place -I options here
 CINCS =
@@ -52,7 +59,7 @@ CFLAGS = -g$(DEBUG)
 CFLAGS += $(CDEFS) $(CINCS)
 CFLAGS += -O$(OPT)
 #CFLAGS += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
-CFLAGS += -Wall -Wno-unused-value -Wno-unused-function -Wno-sequence-point -Wno-unused-label -Wno-uninitialized -Wno-unused-variable -Wno-unused-but-set-variable -fno-strict-aliasing#-Wimplicit-function-declaration#-fno-strict-aliasing #-Wall -Wstrict-prototypes
+CFLAGS += -Wall -Wno-unused-value -Wno-unused-function -Wno-sequence-point -Wno-unused-label -Wno-uninitialized -Wno-unused-variable -Wno-unused-but-set-variable -fno-strict-aliasing
 #CFLAGS += -Wa,-adhlns=$(<:.c=.lst)
 CFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS))
 CFLAGS += $(CSTANDARD)
@@ -95,13 +102,23 @@ COPY = cp
 YACC = bison
 LEX = flex
 
+find_cortex-m4-text :=
+find_armv7e-m-text :=
+
+ifeq "$(MFLOAT_ABI)" "hard"
+	find_cortex-m4-text := thumb/cortex-m4/float-abi-hard/fpuv4-sp-d16
+	find_armv7e-m-text := armv7e-m/fpu
+else
+	find_cortex-m4-text := thumb/cortex-m4
+	find_armv7e-m-text := armv7e-m/softfp
+endif
+
 multilib := $(shell $(CC) -print-multi-lib)
-sources := $(wildcard *.c)
-find_cortex-m4 := $(findstring thumb/cortex-m4,$(multilib))
-find_armv7e-m := $(findstring armv7e-m/softfp,$(multilib))
+find_cortex-m4 := $(findstring $(find_cortex-m4-text),$(multilib))
+find_armv7e-m := $(findstring $(find_armv7e-m-text),$(multilib))
 libgcc-file-name := $(shell $(CC) -print-libgcc-file-name)
-libgcc_path :=
 libc-file-name := $(shell $(CC) -print-file-name=libc.a)
+libgcc_path :=
 libc_path :=
 location :=
 
@@ -138,11 +155,10 @@ hex: $(TARGET).hex
 lss: $(TARGET).lss 
 sym: $(TARGET).sym
 
-
 cm4lib:
 	$(MAKE) -C lib/Drivers/CMSIS/Device/ST/STM32F4xx
 
-hallib:	lib
+hallib:
 	$(MAKE) -C lib/Drivers/STM32F4xx_HAL_Driver
 
 libaac:

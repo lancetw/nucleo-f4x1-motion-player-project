@@ -1,6 +1,6 @@
 
 # MCU name
-MCU = -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -march=armv7e-m -mtune=cortex-m4 -mfloat-abi=softfp -mlittle-endian -mthumb-interwork -nostdlib
+#MCU = -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -march=armv7e-m -mtune=cortex-m4 -mfloat-abi=softfp -mlittle-endian -mthumb-interwork -nostdlib
 
 
 # Target file name (without extension).
@@ -36,7 +36,7 @@ EXTRAINCDIRS = ./Include ../../../Include ../../../../../../ ../../../../STM32F4
 CSTANDARD = 
 
 # Place -D or -U options here
-CDEFS = -DBUILD=0x`date '+%Y%m%d'` -DARM -DSTM32F411xE
+#CDEFS = -DBUILD=0x`date '+%Y%m%d'` -DARM -DSTM32F411xE
 
 # Place -I options here
 CINCS =
