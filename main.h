@@ -344,7 +344,6 @@ extern SPI_HandleTypeDef SpiLcdHandle;
 /* Exported functions ------------------------------------------------------- */
 
 extern void SystemClock_Config(uint32_t pll_N, uint32_t pll_M);
-extern char* ftostr(char* buffer, float value, int places);
 extern uint8_t BSP_AUDIO_OUT_Init(uint16_t OutputDevice, uint8_t Volume, uint8_t bitPerSample, uint32_t AudioFreq);
 extern void init_dac();
 extern int picojpeg(int id, int play_mode);

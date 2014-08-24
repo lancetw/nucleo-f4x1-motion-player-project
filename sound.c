@@ -273,12 +273,12 @@ int PlaySound(int id)
 	pcf.color = WHITE;
 	pcf.colorShadow = GRAY;
 
-	char s[30], s1[10], s2[10];
+	char s[30], s1[10];
 	SPRINTF(s, "%d/%d", id, fat.fileCnt - 1);
 	LCD_GotoXY(5, MUSIC_INFO_POS_Y + 1);
 	if(settings_group.music_conf.b.musicinfo){
 		strcat(s, "  WAV ");
-		SPRINTF(s1, "%sM ", ftostr(s2, (float)(wav.numChannel * wav.bitPerSample * wav.sampleRate) / 1000000.0f, 1));
+		SPRINTF(s1, "%.1fM ", (float)(wav.numChannel * wav.bitPerSample * wav.sampleRate) / 1000000.0f);
 		strcat(s, s1);
 		SPRINTF(s1, "%dkHz", (int)(wav.sampleRate / 1000));
 		strcat(s, s1);

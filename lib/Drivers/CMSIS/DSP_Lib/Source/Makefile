@@ -7,7 +7,13 @@ TARGET = libdsp.a
 
 
 # List C source files here. (C dependencies are automatically generated.)
-SRC := $(sort  $(shell find . -name '*.c'))
+ALL_SRC := $(sort  $(shell find . -name '*.c'))
+SRC = $(findstring CommonTables/arm_common_tables.c,$(ALL_SRC))
+SRC += $(findstring ComplexMathFunctions/arm_cmplx_mag_q31.c,$(ALL_SRC))
+SRC += $(findstring FastMathFunctions/arm_sqrt_q31.c,$(ALL_SRC))
+SRC += $(findstring TransformFunctions/arm_bitreversal.c,$(ALL_SRC))
+SRC += $(findstring TransformFunctions/arm_cfft_radix4_init_q31.c,$(ALL_SRC))
+SRC += $(findstring TransformFunctions/arm_cfft_radix4_q31.c,$(ALL_SRC))
 
 ASRC = #TransformFunctions/arm_bitreversal2.S
 

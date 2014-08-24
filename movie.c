@@ -533,7 +533,7 @@ extern int8_t vol;
 
 				mjpegTouch(id, seekBytes);
 
-				HAL_Delay(50);
+				HAL_Delay(20);
 				media_data_denom = 100 / (++swHoldCnt / SW_HOLD_CNT_VAL);
 			}
 			ret = 1;
@@ -554,7 +554,7 @@ extern int8_t vol;
 				seekBytes += media_data_totalBytes / media_data_denom;
 				mjpegTouch(id, seekBytes);
 
-	 	 		HAL_Delay(50);
+	 	 		HAL_Delay(20);
 	 	 		media_data_denom = 100 / (++swHoldCnt / SW_HOLD_CNT_VAL);
 			}
 			ret = 1;

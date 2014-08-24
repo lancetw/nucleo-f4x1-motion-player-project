@@ -73,26 +73,6 @@ void Delay_us(int us)
 
 }
 
-char* ftostr(char* buffer, float value, int places)
-{
-    int whole;
-    int fraction;
-    char sign[2] = "";
-
-    if(value < 0)
-    {
-        value = -value;
-        sign[0] = '-';
-        sign[1] = '\0';
-    }
-
-    whole = (int)value;
-    fraction = (int)((value - whole) * powf(10.0f,places) + 0.5f);
-    sprintf(buffer, "%s%d.%*.*d", sign, whole, places, places, fraction);
-
-    return buffer;
-}
-
 /* These PLL parameters are valide when the f(VCO clock) = 1Mhz */
 const uint32_t I2SFreq[] = {8000, 11025, 16000, 22050, 32000, 44100, 48000, 96000, 192000};
 const uint32_t I2SPLLN[] = {256, 429, 213, 429, 426, 271, 258, 344, 344};
@@ -478,7 +458,6 @@ int main(void)
 
 // HAL_NVIC_EnableIRQ(USARTx_IRQn);
 
-
   while (1)
   {
 	  if(sleep_time.flags.stop_mode){
@@ -733,11 +712,6 @@ static void Error_Handler(void)
   {
   }
 }
-
-//void abort (void)
-//{
-//	USARTPutString("\r\nabort");
-//}
 
 void _init(void)
 {

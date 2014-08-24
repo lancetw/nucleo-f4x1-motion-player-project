@@ -81,6 +81,7 @@ ASFLAGS = -I ./binaries #-Wa,-gstabs
 #    -Map:      create map file
 #    --cref:    add cross reference to  map file
 LDFLAGS = -T STM32F401CE_FLASH.ld
+LDFLAGS += -Map $(TARGET).map
 LDFLAGS += $(PRINTF_LIB) $(SCANF_LIB) $(MATH_LIB) $(GCC_LIB) $(patsubst %,-L%,$(DIRLIB)) -lcm4 -lhal -lc -lgcc -ldsp -laac -lmp3 -lnosys
 
 # ---------------------------------------------------------------------------

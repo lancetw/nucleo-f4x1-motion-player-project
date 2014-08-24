@@ -925,7 +925,7 @@ int PlayAAC(int id)
 				noerror_cnt = 0;
 				continue;
 			} else if(position_changed){
-				if(++noerror_cnt >= 30){
+				if(++noerror_cnt >= 60){
 					position_changed = 0;
 					noerror_cnt = 0;
 					if(!music_control.b.mute){
