@@ -713,10 +713,6 @@ static void Error_Handler(void)
   }
 }
 
-void _init(void)
-{
-}
-
 #ifdef  USE_FULL_ASSERT
 
 /**

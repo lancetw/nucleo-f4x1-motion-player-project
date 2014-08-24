@@ -3,7 +3,7 @@
 MFLOAT_ABI = softfp
 
 # MCU name
-MCU = -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -march=armv7e-m -mtune=cortex-m4 -mfloat-abi=$(MFLOAT_ABI) -mlittle-endian -mthumb-interwork 
+MCU = -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -march=armv7e-m -mtune=cortex-m4 -mfloat-abi=$(MFLOAT_ABI) -mlittle-endian -ffunction-sections -fdata-sections
 
 export MCU
 
@@ -81,7 +81,8 @@ ASFLAGS = -I ./binaries #-Wa,-gstabs
 #    -Map:      create map file
 #    --cref:    add cross reference to  map file
 LDFLAGS = -T STM32F401CE_FLASH.ld
-LDFLAGS += -Map $(TARGET).map
+LDFLAGS += --gc-section
+LDFLAGS += -Map=$(TARGET).map
 LDFLAGS += $(PRINTF_LIB) $(SCANF_LIB) $(MATH_LIB) $(GCC_LIB) $(patsubst %,-L%,$(DIRLIB)) -lcm4 -lhal -lc -lgcc -ldsp -laac -lmp3 -lnosys
 
 # ---------------------------------------------------------------------------
