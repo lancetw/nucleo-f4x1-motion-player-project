@@ -77,6 +77,8 @@
 //#include "arm_math.h"
 #include "fft.h"
 
+#include "fx.h"
+
 #include <ctype.h>		/* to declare isprint() */
 
 
@@ -411,10 +413,12 @@ int PlayAAC(int id)
 		{
 			uint8_t readBuf[READBUF_SIZE];
 			uint8_t SOUND_BUFFER[8192];
+			uint8_t FLOAT_BUFFER[17664];
 		};
 	}shared_memory_typedef;
 
 	shared_memory_typedef *sm = (shared_memory_typedef*)frame_buffer;
+
 
 	HAACDecoder *hAACDecoder;
 	AACFrameInfo aacFrameInfo;
@@ -584,6 +588,15 @@ int PlayAAC(int id)
 						drawBuff->navigation_loop.width, drawBuff->navigation_loop.height, drawBuff->navigation_loop.p);
 	Update_Navigation_Loop_Icon(drawBuff, music_control.b.navigation_loop_mode);
 
+	drawBuff->bass_boost_loop.x = 70;
+	drawBuff->bass_boost_loop.y = 113;
+	drawBuff->bass_boost_loop.width = 24;
+	drawBuff->bass_boost_loop.height = 14;
+	LCDStoreBgImgToBuff(drawBuff->bass_boost_loop.x, drawBuff->bass_boost_loop.y, \
+						drawBuff->bass_boost_loop.width, drawBuff->bass_boost_loop.height, drawBuff->bass_boost_loop.p);
+	Update_Bass_Boost_Loop_Icon(drawBuff, music_control.b.bass_boost_loop_mode);
+
+
 	drawBuff->posision.width = 12;
 	drawBuff->posision.height = 12;
 	drawBuff->posision.x = UI_POS_X + 1;
@@ -629,7 +642,23 @@ int PlayAAC(int id)
 
 	HAL_Delay(30);
 
-	LCD_SetRegion(0, 90, LCD_WIDTH - 1, LCD_HEIGHT - 1);
+	LCD_SetRegion(0, 100, LCD_WIDTH - 1, LCD_HEIGHT - 1);
+
+    int SoundDMAHalfBlocks = dac_intr.bufferSize / 2 / (sizeof(uint16_t) * 2);
+
+	IIR_Filter_Struct_Typedef IIR;
+	IIR.num_blocks = SoundDMAHalfBlocks;
+	IIR.fs = aacFrameInfo.sampRateCore;
+	IIR.number = music_control.b.bass_boost_loop_mode;
+	IIR_Set_Params(&IIR);
+
+	float *f_in, *f_out;
+	f_in = (float*)&sm->FLOAT_BUFFER[0];
+	f_out = (float*)&sm->FLOAT_BUFFER[SoundDMAHalfBlocks * 2 * sizeof(float)];
+	int fbuf_len = SoundDMAHalfBlocks * sizeof(float) * 2;
+	memset(f_in, '\0', fbuf_len);
+	memset(f_out, '\0', fbuf_len);
+
 
 	bytesLeft = 0;
 	eofReached = 0;
@@ -655,15 +684,21 @@ int PlayAAC(int id)
 	LCDStatusStruct.waitExitKey = 1;
 
 	uint32_t outflag = 0, count = 0;
+	uint32_t *pabuf, left_out, right_out;
+	float *f_ptr;
+	int i;
+	uint8_t bass_boost_volume_up_flag = 0, bass_boost_volume_up_cnt = 0;
 
 	while(!eofReached && LCDStatusStruct.waitExitKey && ((infile->seekBytes - seekBytesSyncWord) < media_data_totalBytes)){
 
 		if(SOUND_DMA_HALF_TRANS_BB){ // Half
  			SOUND_DMA_CLEAR_HALF_TRANS_BB = 1;
  			outbuf = (short*)dac_intr.buff;
+ 			pabuf = (uint32_t*)outbuf;
  		} else if(SOUND_DMA_FULL_TRANS_BB){ // Full
  			SOUND_DMA_CLEAR_FULL_TRANS_BB = 1;
  			outbuf = (short*)&dac_intr.buff[dac_intr.bufferSize >> 1];
+ 			pabuf = (uint32_t*)outbuf;
  		} else {
  			switch(LCDStatusStruct.waitExitKey)
  			{
@@ -741,6 +776,30 @@ int PlayAAC(int id)
  			case PLAY_LOOP_MODE:
  				Update_Navigation_Loop_Icon(drawBuff, music_control.b.navigation_loop_mode = ++music_control.b.navigation_loop_mode % 5);
  				LCD_FRAME_BUFFER_Transmit_Music(LCD_DMA_TRANSMIT_NOBLOCKING);
+ 				LCDStatusStruct.waitExitKey = 1;
+ 				break;
+ 			case BASS_BOOST_LOOP_MODE:
+ 				Update_Bass_Boost_Loop_Icon(drawBuff, music_control.b.bass_boost_loop_mode = ++music_control.b.bass_boost_loop_mode % 4);
+
+				if(music_control.b.prev_bass_boost_loop_mode == 0 && music_control.b.bass_boost_loop_mode){
+					vol = vol + 6;
+					bass_boost_volume_up_flag = 1;
+ 				}else if(music_control.b.prev_bass_boost_loop_mode && music_control.b.bass_boost_loop_mode == 0){
+					vol = vol - 6;
+					HAL_I2S_DMAPause(&haudio_i2s);
+					Delay_us(3);
+					wm8731_left_headphone_volume_set(121 + vol);
+	 				if(!play_pause){
+	 	 				HAL_I2S_DMAResume(&haudio_i2s);
+	 					if(music_control.b.mute){
+	 						music_control.b.mute = 0;
+	 						DRAW_PLAY_ICON();
+	 					}
+	 				}
+ 				}
+
+ 				music_control.b.prev_bass_boost_loop_mode = music_control.b.bass_boost_loop_mode;
+ 				IIR.number = music_control.b.bass_boost_loop_mode;
  				LCDStatusStruct.waitExitKey = 1;
  				break;
  			case PLAY_SW_HOLD_LEFT:
@@ -937,6 +996,44 @@ int PlayAAC(int id)
 				}
 			}
 		}while(position_changed == 1);
+
+		if(music_control.b.bass_boost_loop_mode){
+			f_ptr = f_in;
+
+			for(i = 0;i < SoundDMAHalfBlocks;i++){
+				pabuf[i] = __SHADD16(0, pabuf[i]); // LR right shift 1bit
+				*f_ptr++ = (short)LOWER_OF_WORD(pabuf[i]) / 32768.0f;
+				*f_ptr++ = (short)UPPER_OF_WORD(pabuf[i]) / 32768.0f;
+			}
+
+			/* IIR filtering */
+			IIR_Filter(&IIR, f_in, f_out);
+
+			f_ptr = f_out;
+			for(i = 0;i < SoundDMAHalfBlocks;i++){
+				left_out  = __SSAT((int32_t)(*f_ptr++ * 32768.0f), 16); // clip to -32768 <= x <= 32767
+				right_out = __SSAT((int32_t)(*f_ptr++ * 32768.0f), 16);
+				pabuf[i] = __PKHBT(left_out, right_out, 16); // combine channels
+			}
+
+			if(bass_boost_volume_up_flag){
+				if(++bass_boost_volume_up_cnt >= 2){
+					HAL_I2S_DMAPause(&haudio_i2s);
+					Delay_us(3);
+					wm8731_left_headphone_volume_set(121 + vol);
+	 				if(!play_pause){
+	 	 				HAL_I2S_DMAResume(&haudio_i2s);
+	 					if(music_control.b.mute){
+	 						music_control.b.mute = 0;
+	 						DRAW_PLAY_ICON();
+	 					}
+	 				}
+	 				bass_boost_volume_up_flag = 0;
+	 				bass_boost_volume_up_cnt = 0;
+				}
+			}
+		}
+
 
 		if(settings_group.music_conf.b.fft){
 			/* sample audio data for FFT calcuration */

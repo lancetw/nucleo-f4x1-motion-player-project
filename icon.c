@@ -42,6 +42,34 @@ void Update_Navigation_Loop_Icon(drawBuff_typedef *db, uint8_t index)
 
 }
 
+void Update_Bass_Boost_Loop_Icon(drawBuff_typedef *db, uint8_t index)
+{
+	LCDPutBuffToBgImg(db->bass_boost_loop.x, db->bass_boost_loop.y, \
+			db->bass_boost_loop.width, db->bass_boost_loop.height, db->bass_boost_loop.p);
+
+	switch(index){
+	case 0: // bass boost base
+		LCDPutIcon(db->bass_boost_loop.x, db->bass_boost_loop.y, db->bass_boost_loop.width, db->bass_boost_loop.height, \
+				bass_base_24x14, bass_base_24x14_alpha);
+		break;
+	case 1: // bass boost level1
+		LCDPutIcon(db->bass_boost_loop.x, db->bass_boost_loop.y, db->bass_boost_loop.width, db->bass_boost_loop.height, \
+				bass_level1_24x14, bass_level1_24x14_alpha);
+		break;
+	case 2: // bass boost level2
+		LCDPutIcon(db->bass_boost_loop.x, db->bass_boost_loop.y, db->bass_boost_loop.width, db->bass_boost_loop.height, \
+				bass_level2_24x14, bass_level2_24x14_alpha);
+		break;
+	case 3: // bass boost level3
+		LCDPutIcon(db->bass_boost_loop.x, db->bass_boost_loop.y, db->bass_boost_loop.width, db->bass_boost_loop.height, \
+				bass_level3_24x14, bass_level3_24x14_alpha);
+		break;
+	default:
+		break;
+	}
+
+}
+
 const uint16_t progress_circular_bar_16x16x12[] =
 {
 		0x0000,0x0000,0x0000,0x0841,0x0821,0x0000,0x0000,0x4a8a,

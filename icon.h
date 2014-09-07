@@ -50,18 +50,8 @@ typedef struct{
 
 typedef struct{
 	int x, y, width, height;
-	uint16_t p[24 * 18];
+	uint16_t p[24 * 14];
 }bass_boost_typedef;
-
-typedef struct{
-	int x, y, width, height;
-	uint16_t p[24 * 18];
-}reverb_effect_typedef;
-
-typedef struct{
-	int x, y, width, height;
-	uint16_t p[24 * 18];
-}vocal_cancel_typedef;
 
 
 typedef struct{
@@ -69,11 +59,12 @@ typedef struct{
 	play_pause_icon_buf_typedef play_pause;
 	fft_analyzer_typedef fft_analyzer_left;
 	navigation_loop_typedef navigation_loop;
+	bass_boost_typedef bass_boost_loop;
 }drawBuff_typedef;
 
 
 extern void Update_Navigation_Loop_Icon(drawBuff_typedef *db, uint8_t index);
-
+extern void	Update_Bass_Boost_Loop_Icon(drawBuff_typedef *db, uint8_t index);
 
 extern const uint16_t compass_128x128[]; extern const size_t _sizeof_compass_128x128[];
 
@@ -167,7 +158,6 @@ extern const uint8_t navigation_loop_18x14_alpha[]; extern const size_t _sizeof_
 extern const uint16_t navigation_infinite_entire_loop_18x14[]; extern const size_t _sizeof_navigation_infinite_entire_loop_18x14[];
 extern const uint8_t navigation_infinite_entire_loop_18x14_alpha[]; extern const size_t _sizeof_navigation_infinite_entire_loop_18x14_alpha[];
 
-
 extern const uint16_t navigation_bar_18x14[]; extern const size_t _sizeof_navigation_bar_18x14[];
 extern const uint8_t navigation_bar_18x14_alpha[]; extern const size_t _sizeof_navigation_bar_18x14_alpha[];
 
@@ -177,6 +167,17 @@ extern const uint8_t navigation_infinite_one_loop_18x14_alpha[]; extern const si
 extern const uint16_t navigation_shuffle_18x14[]; extern const size_t _sizeof_navigation_shuffle_18x14[];
 extern const uint8_t navigation_shuffle_18x14_alpha[]; extern const size_t _sizeof_navigation_shuffle_18x14_alpha[];
 
+extern const uint16_t bass_base_24x14[]; extern const size_t _sizeof_bass_base_24x14[];
+extern const uint8_t bass_base_24x14_alpha[]; extern const size_t _sizeof_bass_base_24x14_alpha[];
+
+extern const uint16_t bass_level1_24x14[]; extern const size_t _sizeof_bass_level1_24x14[];
+extern const uint8_t bass_level1_24x14_alpha[]; extern const size_t _sizeof_bass_level1_24x14_alpha[];
+
+extern const uint16_t bass_level2_24x14[]; extern const size_t _sizeof_bass_level2_24x14[];
+extern const uint8_t bass_level2_24x14_alpha[]; extern const size_t _sizeof_bass_level2_24x14_alpha[];
+
+extern const uint16_t bass_level3_24x14[]; extern const size_t _sizeof_bass_level3_24x14[];
+extern const uint8_t bass_level3_24x14_alpha[]; extern const size_t _sizeof_bass_level3_24x14_alpha[];
 
 extern const uint16_t progress_circular_bar_16x16x12[];//,_sizeof_progress_circular_bar_16x16x12[];
 

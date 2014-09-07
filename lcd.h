@@ -32,7 +32,7 @@
 #define ART_WORK_Y 43
 #define ART_WORK_SIZE   40
 
-#define TIME_X 24
+#define TIME_X 22
 #define TIME_Y 114
 #define TIME_REMAIN_X 108
 #define TIME_REMAIN_Y 114

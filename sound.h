@@ -98,8 +98,9 @@ typedef union
 	struct
 	{
 		uint8_t navigation_loop_mode : 3;
+		uint8_t bass_boost_loop_mode : 2;
+		uint8_t prev_bass_boost_loop_mode : 2;
 		uint8_t mute: 1;
-		uint8_t reserved: 4;
 	}b;
 }music_control_typedef;
 
@@ -150,7 +151,7 @@ extern int PlayMusic(int id);
 										prevX = curX;}while(0)
 
 #define DRAW_TIME_STR() do{LCD_GotoXY(TIME_X, TIME_Y); \
-						   LCDPutBgImgToFramebuffer(TIME_X - 1, TIME_Y, 50, 13, music_bgimg_160x128); \
+						   LCDPutBgImgToFramebuffer(TIME_X - 1, TIME_Y, 49, 13, music_bgimg_160x128); \
 						   LCDPutString(setStrSec(timeStr, time), &pcf);}while(0)
 
 #define DRAW_REMAIN_TIME_STR() do{LCD_GotoXY(abs(time - duration) > (99 * 60 + 99) ? TIME_REMAIN_X - 6 : TIME_REMAIN_X, TIME_REMAIN_Y); \

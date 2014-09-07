@@ -506,3 +506,60 @@ navigation_shuffle_18x14_alpha:
 .incbin "navigation_shuffle_18x14_alpha.bin"
 .global _sizeof_navigation_shuffle_18x14_alpha
 .set _sizeof_navigation_shuffle_18x14_alpha, . -navigation_shuffle_18x14_alpha
+
+
+.balign 2
+.global bass_base_24x14
+bass_base_24x14:
+.incbin "bass_base_24x14.bin"
+.global _sizeof_bass_base_24x14
+.set _sizeof_bass_base_24x14, . -bass_base_24x14
+
+.balign 2
+.global bass_base_24x14_alpha
+bass_base_24x14_alpha:
+.incbin "bass_base_24x14_alpha.bin"
+.global _sizeof_bass_base_24x14_alpha
+.set _sizeof_bass_base_24x14_alpha, . -bass_base_24x14_alpha
+
+.balign 2
+.global bass_level1_24x14
+bass_level1_24x14:
+.incbin "bass_level1_24x14.bin"
+.global _sizeof_bass_level1_24x14
+.set _sizeof_bass_level1_24x14, . -bass_level1_24x14
+
+.balign 2
+.global bass_level1_24x14_alpha
+bass_level1_24x14_alpha:
+.incbin "bass_level1_24x14_alpha.bin"
+.global _sizeof_bass_level1_24x14_alpha
+.set _sizeof_bass_level1_24x14_alpha, . -bass_level1_24x14_alpha
+
+.balign 2
+.global bass_level2_24x14
+bass_level2_24x14:
+.incbin "bass_level2_24x14.bin"
+.global _sizeof_bass_level2_24x14
+.set _sizeof_bass_level2_24x14, . -bass_level2_24x14
+
+.balign 2
+.global bass_level2_24x14_alpha
+bass_level2_24x14_alpha:
+.incbin "bass_level2_24x14_alpha.bin"
+.global _sizeof_bass_level2_24x14_alpha
+.set _sizeof_bass_level2_24x14_alpha, . -bass_level2_24x14_alpha
+
+.balign 2
+.global bass_level3_24x14
+bass_level3_24x14:
+.incbin "bass_level3_24x14.bin"
+.global _sizeof_bass_level3_24x14
+.set _sizeof_bass_level3_24x14, . -bass_level3_24x14
+
+.balign 2
+.global bass_level3_24x14_alpha
+bass_level3_24x14_alpha:
+.incbin "bass_level3_24x14_alpha.bin"
+.global _sizeof_bass_level3_24x14_alpha
+.set _sizeof_bass_level3_24x14_alpha, . -bass_level3_24x14_alpha

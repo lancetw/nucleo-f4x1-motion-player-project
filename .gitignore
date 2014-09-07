@@ -408,3 +408,4 @@ lib/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ramfunc.o
 lib/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pcd_ex.o
 lib/Drivers/CMSIS/Device/ST/STM32F4xx/Source/Templates/gcc/startup_stm32f411xe.o
 nucleo_f4x1_motion_player.map
+fx.o

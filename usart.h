@@ -14,15 +14,16 @@
 #define CURSOR_DOWN  0x0e
 #define CURSOR_ENTER 0x0D
 
-#define VOL_UP		       0x10
-#define VOL_DOWN	       0x11
-#define VOL_MUTE	       0x12
-#define PLAY_PAUSE	       0x13
-#define PLAY_LOOP_MODE     0x14
-#define PLAY_NEXT	       0x15
-#define PLAY_PREV	       0x16
-#define PLAY_SW_HOLD_LEFT  0x17
-#define PLAY_SW_HOLD_RIGHT 0x18
+#define VOL_UP		         0x10
+#define VOL_DOWN	         0x11
+#define VOL_MUTE	         0x12
+#define PLAY_PAUSE	         0x13
+#define PLAY_LOOP_MODE       0x14
+#define BASS_BOOST_LOOP_MODE 0x15
+#define PLAY_NEXT	         0x16
+#define PLAY_PREV	         0x17
+#define PLAY_SW_HOLD_LEFT    0x18
+#define PLAY_SW_HOLD_RIGHT   0x19
 
 typedef struct {
 	int (*printf)(const char *, ...);

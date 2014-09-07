@@ -558,6 +558,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 					LCDStatusStruct.waitExitKey = PLAY_LOOP_MODE; // Change Play Loop Mode
 					sw_touched = 1;
 					return;
+				} else if (sw_pressing == SW_PUSH_UP_PIN) {
+					LCDStatusStruct.waitExitKey = BASS_BOOST_LOOP_MODE; // Bass Boost Loop Mode
+					sw_touched = 1;
+					return;
 				}
 				HAL_TIM_Base_Start_IT(&TimHandleSwHold);
 				break;

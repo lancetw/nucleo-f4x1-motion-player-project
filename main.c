@@ -454,6 +454,7 @@ int main(void)
  sleep_time.flags.enable = 1;
 
  music_control.b.navigation_loop_mode = NAV_PLAY_ENTIRE;
+ music_control.b.bass_boost_loop_mode = 0;
  music_control.b.mute = 0;
 
 // HAL_NVIC_EnableIRQ(USARTx_IRQn);

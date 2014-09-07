@@ -4,6 +4,7 @@ MFLOAT_ABI = softfp
 
 # MCU name
 MCU = -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -march=armv7e-m -mtune=cortex-m4 -mfloat-abi=$(MFLOAT_ABI) -mlittle-endian -ffunction-sections -fdata-sections
+#MCU = -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -march=armv7e-m -mtune=cortex-m4 -mfloat-abi=$(MFLOAT_ABI) -mlittle-endian -fdata-sections
 
 export MCU
 
@@ -15,7 +16,7 @@ TARGET = nucleo_f4x1_motion_player
 
 
 # List C source files here. (C dependencies are automatically generated.)
-SRC = main.c lcd.c icon.c picojpeg.c picojpeg_disp.c pcf_font.c cfile.c usart.c stm32f4xx_hal_msp.c stm32f4xx_it.c xmodem.c fat.c sd.c HMC5883L.c movie.c sound.c aac.c mp3.c fft.c wm8731.c settings.c lib/Drivers/BSP/STM32F4xx-Nucleo/stm32f4xx_nucleo.c
+SRC = main.c lcd.c icon.c picojpeg.c picojpeg_disp.c pcf_font.c cfile.c usart.c stm32f4xx_hal_msp.c stm32f4xx_it.c xmodem.c fat.c sd.c HMC5883L.c movie.c sound.c aac.c mp3.c fx.c fft.c wm8731.c settings.c lib/Drivers/BSP/STM32F4xx-Nucleo/stm32f4xx_nucleo.c
 
 
 ASRC = image.s

@@ -27,7 +27,7 @@
 
 uint16_t clx, cly;
 
-uint16_t cursorRAM[LCD_WIDTH * 13];
+uint16_t cursorRAM[LCD_WIDTH * 13] __attribute__((aligned(4)));
 
 volatile time_typedef sleep_time;
 
@@ -37,7 +37,7 @@ LCDStatusStruct_typedef LCDStatusStruct;
 
 SPI_HandleTypeDef SpiLcdHandle;
 
-uint16_t frame_buffer[160 * 128];
+uint16_t frame_buffer[160 * 128] __attribute__((aligned(4)));
 
 void LCD_Reset()
 {
@@ -111,7 +111,7 @@ void LCD_FRAME_BUFFER_Transmit_Music(int8_t blocking)
 	LCD_CMD(0x002c);
 	SPI_LCD_NSS_PIN_ASSERT;
 	SPI_LCD_RS_PIN_DEASSERT;
-	HAL_SPI_Transmit_DMA(&SpiLcdHandle, (uint8_t*)&frame_buffer[90 * LCD_WIDTH], ((LCD_HEIGHT - 90) * LCD_WIDTH * sizeof(uint16_t)) / sizeof(uint16_t));
+	HAL_SPI_Transmit_DMA(&SpiLcdHandle, (uint8_t*)&frame_buffer[100 * LCD_WIDTH], ((LCD_HEIGHT - 100) * LCD_WIDTH * sizeof(uint16_t)) / sizeof(uint16_t));
 
 	while((blocking == LCD_DMA_TRANSMIT_COMPBLOCKING) && (SpiLcdHandle.State != HAL_SPI_STATE_READY)){};
 }
