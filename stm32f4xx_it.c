@@ -545,6 +545,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		} else if (current_mode == SW_MODE_PLAYER) { // Play Mode
 			switch (sw_pushed) {
 			case SW_PUSH_ENTER_PIN:
+				if (sw_pressing == SW_PUSH_DOWN_PIN) {
+					LCDStatusStruct.waitExitKey = BASS_BOOST_LOOP_MODE; // Bass Boost Loop Mode
+					sw_touched = 1;
+					return;
+				}
 				break;
 			case SW_PUSH_LEFT_PIN:
 				if (sw_pressing == SW_PUSH_ENTER_PIN) {
@@ -557,10 +562,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 			case SW_PUSH_RIGHT_PIN:
 				if (sw_pressing == SW_PUSH_ENTER_PIN) {
 					LCDStatusStruct.waitExitKey = PLAY_LOOP_MODE; // Change Play Loop Mode
-					sw_touched = 1;
-					return;
-				} else if (sw_pressing == SW_PUSH_DOWN_PIN) {
-					LCDStatusStruct.waitExitKey = BASS_BOOST_LOOP_MODE; // Bass Boost Loop Mode
 					sw_touched = 1;
 					return;
 				}
