@@ -362,6 +362,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 				LCDStatusStruct.waitExitKey = 0;
 				break;
 			case SW_PUSH_DOWN_PIN:
+				LCDStatusStruct.waitExitKey = PLAY_PAUSE; // Play Pause
 				break;
 			default:
 				break;
@@ -558,7 +559,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 					LCDStatusStruct.waitExitKey = PLAY_LOOP_MODE; // Change Play Loop Mode
 					sw_touched = 1;
 					return;
-				} else if (sw_pressing == SW_PUSH_UP_PIN) {
+				} else if (sw_pressing == SW_PUSH_DOWN_PIN) {
 					LCDStatusStruct.waitExitKey = BASS_BOOST_LOOP_MODE; // Bass Boost Loop Mode
 					sw_touched = 1;
 					return;
@@ -580,7 +581,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 					sw_touched = 1;
 					return;
 				}
-				LCDStatusStruct.waitExitKey = PLAY_PAUSE; // Play Pause
 				break;
 			default:
 				break;
